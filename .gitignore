@@ -1,0 +1,44 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Datasets (Explicitly required by assignment: do not include datasets in repository)
+data/
+*.hdf5
+*.h5
+
+# Saved FAISS / ANN index files (Explicitly required: do not include index files)
+*.index
+*.faiss
+*.bin
+*.hnsw
+indexes/
+indices/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & linting caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & OS metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Submission archives & temporary files
+*.zip
+*.tar.gz
+scratch/
+tmp/
+A3.md

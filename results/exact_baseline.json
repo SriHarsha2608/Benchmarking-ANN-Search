@@ -1,0 +1,32 @@
+[
+  {
+    "dataset": "sift",
+    "num_train": 1000000,
+    "dim": 128,
+    "split": "test",
+    "build_time_s": 0.48370469600013166,
+    "index_mb": 488.28125,
+    "bytes_per_vec": 512.0,
+    "recall_at_10": 1.0,
+    "batch_qps": 302.87106346577133,
+    "batch_latency_ms": 3.301735030599957,
+    "single_qps": 36.13648206419051,
+    "single_latency_ms": 27.672865283999272,
+    "speedup_batch_vs_single": 8.381310137709884
+  },
+  {
+    "dataset": "glove",
+    "num_train": 1183514,
+    "dim": 100,
+    "split": "test",
+    "build_time_s": 0.2129686389998824,
+    "index_mb": 451.4747619628906,
+    "bytes_per_vec": 400.0,
+    "recall_at_10": 1.0,
+    "batch_qps": 291.3843697643833,
+    "batch_latency_ms": 3.4318930723999075,
+    "single_qps": 38.79207243792548,
+    "single_latency_ms": 25.778462895999837,
+    "speedup_batch_vs_single": 7.511441164445451
+  }
+]
