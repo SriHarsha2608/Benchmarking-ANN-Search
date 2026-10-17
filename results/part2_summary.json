@@ -1,0 +1,110 @@
+{
+  "sift": {
+    "qps_at_recall": [
+      {
+        "Index": "HNSW",
+        "QPS @ Recall 0.90": "12489.9",
+        "QPS @ Recall 0.95": "7188.5"
+      },
+      {
+        "Index": "IVF-Flat",
+        "QPS @ Recall 0.90": "3035.8",
+        "QPS @ Recall 0.95": "1947.9"
+      },
+      {
+        "Index": "IVF-PQ",
+        "QPS @ Recall 0.90": "N/A (max 0.883)",
+        "QPS @ Recall 0.95": "N/A (max 0.883)"
+      },
+      {
+        "Index": "Exact (IndexFlatL2)",
+        "QPS @ Recall 0.90": "36.1",
+        "QPS @ Recall 0.95": "36.1"
+      }
+    ],
+    "resources_at_095": [
+      {
+        "Index": "HNSW",
+        "Build Time (s)": "144.82s",
+        "Index Size (MB)": "747.8 MB",
+        "Bytes / Vector": "784.1",
+        "Note": "Achieved recall: 0.9566 (M=32,efC=64)"
+      },
+      {
+        "Index": "IVF-Flat",
+        "Build Time (s)": "38.10s",
+        "Index Size (MB)": "496.9 MB",
+        "Bytes / Vector": "521.1",
+        "Note": "Achieved recall: 0.9609 (nlist=2048)"
+      },
+      {
+        "Index": "IVF-PQ",
+        "Build Time (s)": "49.38s",
+        "Index Size (MB)": "69.8 MB",
+        "Bytes / Vector": "73.2",
+        "Note": "Max recall reached: 0.883 (< 0.95)"
+      },
+      {
+        "Index": "Exact (IndexFlatL2)",
+        "Build Time (s)": "0.48s",
+        "Index Size (MB)": "488.3 MB",
+        "Bytes / Vector": "512.0",
+        "Note": "Exact search (Recall 1.0)"
+      }
+    ]
+  },
+  "glove": {
+    "qps_at_recall": [
+      {
+        "Index": "HNSW",
+        "QPS @ Recall 0.90": "1192.1",
+        "QPS @ Recall 0.95": "446.0"
+      },
+      {
+        "Index": "IVF-Flat",
+        "QPS @ Recall 0.90": "874.5",
+        "QPS @ Recall 0.95": "387.0"
+      },
+      {
+        "Index": "IVF-PQ",
+        "QPS @ Recall 0.90": "N/A (max 0.830)",
+        "QPS @ Recall 0.95": "N/A (max 0.830)"
+      },
+      {
+        "Index": "Exact (IndexFlatL2)",
+        "QPS @ Recall 0.90": "38.8",
+        "QPS @ Recall 0.95": "38.8"
+      }
+    ],
+    "resources_at_095": [
+      {
+        "Index": "HNSW",
+        "Build Time (s)": "208.27s",
+        "Index Size (MB)": "758.6 MB",
+        "Bytes / Vector": "672.2",
+        "Note": "Achieved recall: 0.9597 (M=32,efC=64)"
+      },
+      {
+        "Index": "IVF-Flat",
+        "Build Time (s)": "33.97s",
+        "Index Size (MB)": "461.3 MB",
+        "Bytes / Vector": "408.7",
+        "Note": "Achieved recall: 0.9585 (nlist=2048)"
+      },
+      {
+        "Index": "IVF-PQ",
+        "Build Time (s)": "43.53s",
+        "Index Size (MB)": "66.4 MB",
+        "Bytes / Vector": "58.8",
+        "Note": "Max recall reached: 0.830 (< 0.95)"
+      },
+      {
+        "Index": "Exact (IndexFlatL2)",
+        "Build Time (s)": "0.21s",
+        "Index Size (MB)": "451.5 MB",
+        "Bytes / Vector": "400.0",
+        "Note": "Exact search (Recall 1.0)"
+      }
+    ]
+  }
+}
