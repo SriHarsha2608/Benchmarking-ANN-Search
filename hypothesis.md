@@ -50,7 +50,51 @@ Product Quantization maps continuous sub-vectors to discrete centroid codes ($k^
 
 ---
 
-## Part 4: Experiment on Your Own Data (Failure Mode)
+## Part 4: Experiment on Generated Data (Geometry Failure Mode)
 
-*(To be formulated and committed prior to running Part 4)*
+### Core Question
+How does cluster dispersion (tightness vs. overlap) affect the search recall and routing mechanisms of space-partitioning indexes (IVF-Flat) compared to proximity graph indexes (HNSW)?
+
+### Motivation & Theoretical Basis
+Real-world vector embeddings (like SIFT image descriptors) exhibit non-uniform clustering in high-dimensional space. The two dominant ANN paradigms exploit data geometry differently:
+- **IVF-Flat** relies on Voronoi partitioning via $k$-means centroids, operating on the assumption that nearest neighbours fall within the same or immediately adjacent cells.
+- **HNSW** builds a hierarchical Delaunay-like proximity graph, routing queries via greedy downhill traversal along local distance gradients.
+
+When cluster variance is small, data clusters are tightly concentrated and well separated. As cluster variance increases, the clusters spread out, overlap, and eventually merge into a diffuse, uniform-like distribution. This experiment tests how each index degrades as this geometric property is varied.
+
+### Synthetic Data Generator Design
+We generate synthetic datasets with controlled cluster dispersion while fixing all other parameters:
+- **Base dataset size**: $N = 200,000$ vectors in $D = 64$ dimensions.
+- **Cluster structure**: $K = 50$ centroids sampled uniformly in $\mathbb{R}^{64}$.
+- **Data distribution**: Base vectors are drawn from a Gaussian Mixture Model: $x \sim \frac{1}{K} \sum_{k=1}^K \mathcal{N}(\mu_k, \sigma^2 I_{64})$.
+- **Query set**: $N_q = 2,000$ test queries drawn from the same mixture distribution. True nearest neighbours are determined via exact brute-force search (`IndexFlatL2`).
+- **Reproducibility**: All generation is seeded with `seed=42`.
+
+**Single Property Varied: Intra-Cluster Standard Deviation ($\sigma$)**:
+- **Control ($\sigma = 0.05$)**: Tight, isolated clusters with large empty space between clusters.
+- **Setting 1 ($\sigma = 0.15$)**: Moderately compact clusters with minimal boundary overlap.
+- **Setting 2 ($\sigma = 0.35$)**: Diffuse clusters with significant overlap across cluster boundaries.
+- **Setting 3 ($\sigma = 0.70$)**: Highly dispersed clouds where cluster structure dissolves into ambient noise.
+
+Fixed index configurations:
+- **IVF-Flat**: $nlist = 1024$, sweeping $nprobe \in \{1, 2, 4, 8, 16, 32, 64, 128\}$.
+- **HNSW**: $M = 16$, $efConstruction = 64$, sweeping $efSearch \in \{10, 20, 40, 80, 160, 320\}$.
+
+---
+
+### Hypotheses
+
+1. **IVF-Flat Boundary Scattering**:
+   - For tight clusters ($\sigma = 0.05$), IVF-Flat will achieve high recall ($>0.95$) at very low search budget ($nprobe = 1$ or $2$) because nearly all 10 true nearest neighbours fall into the exact same Voronoi cell as the query.
+   - As $\sigma$ increases, points from the same cluster will spill across multiple Voronoi boundaries. Consequently, recall at low $nprobe$ will drop steeply, forcing IVF-Flat to probe a substantially larger fraction of cells ($nprobe \ge 32$) to reach acceptable recall.
+
+2. **HNSW Geometric Resilience**:
+   - HNSW will be significantly more robust to increasing $\sigma$ than IVF-Flat. Because graph routing does not rely on rigid spatial boundaries, greedy search can traverse continuous distance gradients even when clusters overlap. At moderate search depth ($efSearch = 40$), HNSW is expected to maintain recall above $0.90$ across all dispersion settings.
+
+3. **Isolated Clique Trapping in HNSW at Extreme Tightness**:
+   - At $\sigma = 0.05$, tight and distant clusters may cause HNSW's base layer to form dense intra-cluster cliques with relatively few cross-cluster bridges. If a query lies on the margin of a cluster or greedy search starts from a distant entry point, traversal may risk local-minima entrapment unless $efSearch$ is sufficiently large.
+
+4. **Resource and Throughput Trade-offs**:
+   - **Build Time**: IVF-Flat build time will remain largely independent of $\sigma$ because $k$-means iteration counts are stable. HNSW build time will increase with $\sigma$ as neighbor selection during insertion must evaluate a less spatially concentrated set of candidates.
+   - **Throughput at Target Recall**: Achieving recall $\ge 0.95$ on diffuse data ($\sigma = 0.70$) will require large $nprobe$ values for IVF-Flat, causing its QPS to drop significantly, whereas HNSW's QPS at $0.95$ recall will experience less severe degradation.
 
