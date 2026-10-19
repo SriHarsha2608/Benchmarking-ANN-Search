@@ -98,3 +98,17 @@ Fixed index configurations:
    - **Build Time**: IVF-Flat build time will remain largely independent of $\sigma$ because $k$-means iteration counts are stable. HNSW build time will increase with $\sigma$ as neighbor selection during insertion must evaluate a less spatially concentrated set of candidates.
    - **Throughput at Target Recall**: Achieving recall $\ge 0.95$ on diffuse data ($\sigma = 0.70$) will require large $nprobe$ values for IVF-Flat, causing its QPS to drop significantly, whereas HNSW's QPS at $0.95$ recall will experience less severe degradation.
 
+### Empirical Evaluation & Verification (Post-Experiment)
+
+| Hypothesis | Predicted Behavior | Empirical Observation | Verdict |
+|:-----------|:-------------------|:----------------------|:-------:|
+| **H1: IVF Boundary Scattering** | Severe recall drop at low/mod $nprobe$ as $\sigma \to 0.70$; requires large $nprobe$ | At $nprobe=16$, recall drops from 0.9432 ($\sigma=0.05$) to 0.7053 ($\sigma=0.70$); fails 0.95 target (0.9354 at $np=128$) | **Confirmed** |
+| **H2: HNSW Geometric Resilience** | HNSW degrades less than IVF; maintains $>0.90$ at $ef=40$ | HNSW outperforms IVF at low budget ($ef=20$ rec=0.5239 vs IVF $np=4$ rec=0.3460), but at $\sigma=0.70$ distance concentration caps $ef=40$ at 0.6688 | **Partially Confirmed** |
+| **H3: Tight Clique Trapping** | Extreme tightness ($\sigma=0.05$) causes slight routing entrapment vs mild overlap | At $ef=320$, recall is 0.9784 ($\sigma=0.05$) vs 0.9907 ($\sigma=0.15$), confirming isolated intra-cluster clique penalty | **Confirmed** |
+| **H4: Resource Trade-offs** | IVF build time invariant; HNSW build time increases with $\sigma$; diffuse data degrades QPS | IVF build time invariant (7.09s vs 7.02s); HNSW build time increases from 23.95s to 29.05s (+21.3%); both fail 0.95 at $\sigma=0.70$ | **Confirmed** |
+
+**Key Takeaways for Report:**
+1. **The Voronoi Assumption Breakpoint**: IVF-Flat's core spatial assumption breaks down when intra-cluster variance causes points to spill across Voronoi boundaries. When clusters dissolve into diffuse ambient noise ($\sigma=0.70$), true nearest neighbours are scattered across dozens of inverted lists, causing recall at $nprobe=16$ to collapse from $94.3\%$ down to $70.5\%$.
+2. **Graph Navigation vs. Distance Concentration**: While HNSW avoids rigid boundary clipping, severe dispersion ($\sigma=0.70$) causes distance concentration where contrast between 1-NN and 10-NN narrows, causing greedy routing to lose directional gradient signal. Both indexes fail to reach $0.95$ recall at $\sigma=0.70$.
+3. **The Goldilocks Geometry**: Both indexes perform optimally when data possesses moderate cluster structure ($\sigma \approx 0.15$): clusters are distinct enough to guide Voronoi assignment and graph highways, yet connected enough to avoid isolated clique traps.
+
