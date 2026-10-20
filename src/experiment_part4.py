@@ -25,9 +25,14 @@ from src.metrics import compute_recall_at_k
 
 def measure_index_size(index: faiss.Index) -> int:
     """Measure exact serialized size of a FAISS index in bytes."""
-    with tempfile.NamedTemporaryFile(suffix=".index", delete=True) as tmp:
-        faiss.write_index(index, tmp.name)
-        size_bytes = os.path.getsize(tmp.name)
+    fd, tmp_path = tempfile.mkstemp(suffix=".index")
+    os.close(fd)
+    try:
+        faiss.write_index(index, tmp_path)
+        size_bytes = os.path.getsize(tmp_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
     return size_bytes
 
 

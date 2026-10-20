@@ -33,8 +33,12 @@ fi
 echo "Python interpreter: $($PYTHON --version)"
 
 # -------------------------------------------------------------
-# Part 1: Exact Baseline
+# Part 1: Unit Tests & Exact Baseline
 # -------------------------------------------------------------
+echo ""
+echo ">>> Running Unit & Integration Tests (pytest)..."
+$PYTHON -m pytest tests/
+
 echo ""
 echo ">>> [1/4] Running Part 1: Exact Search Baseline..."
 $PYTHON src/exact_search.py $QUICK_FLAG

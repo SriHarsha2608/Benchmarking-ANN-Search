@@ -6,106 +6,106 @@
     "plain_bytes_per_vec": 18.261172,
     "refine_size_bytes": 530261172,
     "refine_bytes_per_vec": 530.261172,
-    "build_time_s": 80.11222874299995,
+    "build_time_s": 54.76846521900006,
     "nprobe_results": [
       {
         "nprobe": 1,
         "recall_plain": 0.23084000000000002,
-        "qps_plain": 18483.627932490996,
-        "latency_plain_ms": 0.0541019329999699,
+        "qps_plain": 19161.28855548267,
+        "latency_plain_ms": 0.05218855700150016,
         "recall_refine": 0.30214,
-        "qps_refine": 12921.74424992551,
-        "latency_refine_ms": 0.07738893299995198,
+        "qps_refine": 14121.172766151196,
+        "latency_refine_ms": 0.07081564800319029,
         "recall_gain": 0.0713,
-        "qps_retention": 0.6990913416522163
+        "qps_retention": 0.7369636298343133
       },
       {
         "nprobe": 2,
         "recall_plain": 0.3003,
-        "qps_plain": 17630.45518678407,
-        "latency_plain_ms": 0.056720033000033254,
+        "qps_plain": 18168.924192296316,
+        "latency_plain_ms": 0.0550390319986036,
         "recall_refine": 0.44318,
-        "qps_refine": 11854.666483366482,
-        "latency_refine_ms": 0.08435496699996747,
+        "qps_refine": 13075.929477732425,
+        "latency_refine_ms": 0.07647639899732894,
         "recall_gain": 0.14288,
-        "qps_retention": 0.6723970741409351
+        "qps_retention": 0.719686500936399
       },
       {
         "nprobe": 4,
         "recall_plain": 0.35078,
-        "qps_plain": 15723.499617680787,
-        "latency_plain_ms": 0.06359907299997758,
+        "qps_plain": 17132.658708069746,
+        "latency_plain_ms": 0.05836805699800607,
         "recall_refine": 0.588,
-        "qps_refine": 10628.621417094682,
-        "latency_refine_ms": 0.09408557900007962,
+        "qps_refine": 11934.921166125792,
+        "latency_refine_ms": 0.08378773400181672,
         "recall_gain": 0.23722,
-        "qps_retention": 0.6759704693949299
+        "qps_retention": 0.6966181588911393
       },
       {
         "nprobe": 8,
         "recall_plain": 0.3843,
-        "qps_plain": 13396.076088377142,
-        "latency_plain_ms": 0.07464872499997455,
+        "qps_plain": 14990.869136712063,
+        "latency_plain_ms": 0.06670727299933787,
         "recall_refine": 0.7157399999999999,
-        "qps_refine": 9701.206807807555,
-        "latency_refine_ms": 0.10307995900006972,
+        "qps_refine": 10570.552662152268,
+        "latency_refine_ms": 0.09460243300054572,
         "recall_gain": 0.33143999999999996,
-        "qps_retention": 0.7241827191639072
+        "qps_retention": 0.705132742188069
       },
       {
         "nprobe": 16,
         "recall_plain": 0.40286,
-        "qps_plain": 11056.483360971017,
-        "latency_plain_ms": 0.0904446710000002,
+        "qps_plain": 12184.738919206377,
+        "latency_plain_ms": 0.08206987499943352,
         "recall_refine": 0.8071,
-        "qps_refine": 8202.830133888621,
-        "latency_refine_ms": 0.12190914400002838,
+        "qps_refine": 8866.665635730451,
+        "latency_refine_ms": 0.11278196800049045,
         "recall_gain": 0.40424000000000004,
-        "qps_retention": 0.7419022727284439
+        "qps_retention": 0.7276861403861709
       },
       {
         "nprobe": 32,
         "recall_plain": 0.4102,
-        "qps_plain": 7668.659963555379,
-        "latency_plain_ms": 0.13040087900003527,
+        "qps_plain": 8675.271848247878,
+        "latency_plain_ms": 0.11527016299805838,
         "recall_refine": 0.8585200000000001,
-        "qps_refine": 6613.557113527424,
-        "latency_refine_ms": 0.1512045610000996,
+        "qps_refine": 6784.426674104845,
+        "latency_refine_ms": 0.147396390002541,
         "recall_gain": 0.44832000000000005,
-        "qps_retention": 0.8624136609209122
+        "qps_retention": 0.7820419685724406
       },
       {
         "nprobe": 64,
         "recall_plain": 0.4132799999999999,
-        "qps_plain": 4983.256258968517,
-        "latency_plain_ms": 0.20067200000005414,
+        "qps_plain": 5698.738903336135,
+        "latency_plain_ms": 0.1754774199980602,
         "recall_refine": 0.8820800000000001,
-        "qps_refine": 4258.594823829622,
-        "latency_refine_ms": 0.23481924000009258,
+        "qps_refine": 4723.3412447653445,
+        "latency_refine_ms": 0.2117145359989081,
         "recall_gain": 0.46880000000000016,
-        "qps_retention": 0.8545807404877686
+        "qps_retention": 0.8288397354018489
       },
       {
         "nprobe": 128,
         "recall_plain": 0.41373999999999994,
-        "qps_plain": 2885.7319103629025,
-        "latency_plain_ms": 0.34653253700003006,
+        "qps_plain": 3438.2801650797774,
+        "latency_plain_ms": 0.2908430820025387,
         "recall_refine": 0.8883400000000001,
-        "qps_refine": 2599.877863457759,
-        "latency_refine_ms": 0.3846334529999922,
+        "qps_refine": 3100.0843220006805,
+        "latency_refine_ms": 0.3225718709982175,
         "recall_gain": 0.4746000000000002,
-        "qps_retention": 0.900942271914235
+        "qps_retention": 0.9016380786784285
       },
       {
         "nprobe": 256,
         "recall_plain": 0.41384000000000004,
-        "qps_plain": 1788.8840668923363,
-        "latency_plain_ms": 0.5590077179999753,
+        "qps_plain": 1941.52510797388,
+        "latency_plain_ms": 0.5150590099983674,
         "recall_refine": 0.8898800000000001,
-        "qps_refine": 1746.2791763281582,
-        "latency_refine_ms": 0.5726461230000268,
+        "qps_refine": 1849.6427379009829,
+        "latency_refine_ms": 0.5406449469992367,
         "recall_gain": 0.4760400000000001,
-        "qps_retention": 0.9761835373500801
+        "qps_retention": 0.9526751574339499
       }
     ]
   },
@@ -116,106 +116,106 @@
     "plain_bytes_per_vec": 26.261172,
     "refine_size_bytes": 538261172,
     "refine_bytes_per_vec": 538.261172,
-    "build_time_s": 146.00080504999994,
+    "build_time_s": 139.52556127500065,
     "nprobe_results": [
       {
         "nprobe": 1,
         "recall_plain": 0.27055999999999997,
-        "qps_plain": 19461.26054124356,
-        "latency_plain_ms": 0.051384133000055954,
+        "qps_plain": 21525.95237817624,
+        "latency_plain_ms": 0.046455551997496514,
         "recall_refine": 0.303,
-        "qps_refine": 13731.010115987507,
-        "latency_refine_ms": 0.07282785400002467,
+        "qps_refine": 15095.582132136426,
+        "latency_refine_ms": 0.06624454699704074,
         "recall_gain": 0.032440000000000024,
-        "qps_retention": 0.7055560500250159
+        "qps_retention": 0.701273600671943
       },
       {
         "nprobe": 2,
         "recall_plain": 0.37308,
-        "qps_plain": 18760.717998196447,
-        "latency_plain_ms": 0.05330286399998841,
+        "qps_plain": 20073.905696508536,
+        "latency_plain_ms": 0.04981591600153479,
         "recall_refine": 0.44543999999999995,
-        "qps_refine": 12337.221314049904,
-        "latency_refine_ms": 0.08105552899996837,
+        "qps_refine": 13731.64628205006,
+        "latency_refine_ms": 0.0728244799975073,
         "recall_gain": 0.07235999999999992,
-        "qps_retention": 0.6576092298405604
+        "qps_retention": 0.6840545377493933
       },
       {
         "nprobe": 4,
         "recall_plain": 0.46013999999999994,
-        "qps_plain": 16445.74305151774,
-        "latency_plain_ms": 0.060806008999861653,
+        "qps_plain": 17707.769912601714,
+        "latency_plain_ms": 0.05647238500023378,
         "recall_refine": 0.5976,
-        "qps_refine": 10917.449268543858,
-        "latency_refine_ms": 0.09159648700006073,
+        "qps_refine": 12169.326392377377,
+        "latency_refine_ms": 0.08217381700160331,
         "recall_gain": 0.13746000000000008,
-        "qps_retention": 0.6638465184786109
+        "qps_retention": 0.6872308852238412
       },
       {
         "nprobe": 8,
         "recall_plain": 0.5256799999999999,
-        "qps_plain": 12899.800285282847,
-        "latency_plain_ms": 0.0775205800000549,
+        "qps_plain": 14544.471233353066,
+        "latency_plain_ms": 0.06875464800032205,
         "recall_refine": 0.73894,
-        "qps_refine": 8306.50070566139,
-        "latency_refine_ms": 0.12038763800001108,
+        "qps_refine": 10244.683509009752,
+        "latency_refine_ms": 0.09761160499692778,
         "recall_gain": 0.21326000000000012,
-        "qps_retention": 0.6439247524737364
+        "qps_retention": 0.7043696085366696
       },
       {
         "nprobe": 16,
         "recall_plain": 0.5649,
-        "qps_plain": 9001.009625261855,
-        "latency_plain_ms": 0.1110986479998246,
+        "qps_plain": 10777.525152493445,
+        "latency_plain_ms": 0.09278568000081577,
         "recall_refine": 0.8514600000000002,
-        "qps_refine": 6899.89984104913,
-        "latency_refine_ms": 0.14492964000010033,
+        "qps_refine": 7835.533837151591,
+        "latency_refine_ms": 0.12762372300130664,
         "recall_gain": 0.28656000000000026,
-        "qps_retention": 0.766569543674763
+        "qps_retention": 0.7270253352495116
       },
       {
         "nprobe": 32,
         "recall_plain": 0.5844199999999999,
-        "qps_plain": 5605.372399669347,
-        "latency_plain_ms": 0.17840027900001587,
+        "qps_plain": 7003.694680068619,
+        "latency_plain_ms": 0.14278178099993966,
         "recall_refine": 0.9253600000000001,
-        "qps_refine": 4771.739703720809,
-        "latency_refine_ms": 0.2095671729998685,
+        "qps_refine": 5613.689741463085,
+        "latency_refine_ms": 0.1781359579981654,
         "recall_gain": 0.34094000000000013,
-        "qps_retention": 0.8512796944592455
+        "qps_retention": 0.80153261926719
       },
       {
         "nprobe": 64,
         "recall_plain": 0.59302,
-        "qps_plain": 3714.7141577419593,
-        "latency_plain_ms": 0.26919971699999223,
+        "qps_plain": 4192.68461561575,
+        "latency_plain_ms": 0.23851066600036575,
         "recall_refine": 0.9661200000000001,
-        "qps_refine": 3433.7103233660646,
-        "latency_refine_ms": 0.2912301579999621,
+        "qps_refine": 3664.3796979920703,
+        "latency_refine_ms": 0.27289748399925884,
         "recall_gain": 0.3731000000000001,
-        "qps_retention": 0.9243538473100964
+        "qps_retention": 0.8739936422463078
       },
       {
         "nprobe": 128,
         "recall_plain": 0.59544,
-        "qps_plain": 2207.7568423943962,
-        "latency_plain_ms": 0.4529484320000847,
+        "qps_plain": 2404.0937003601134,
+        "latency_plain_ms": 0.4159571650016005,
         "recall_refine": 0.98064,
-        "qps_refine": 2099.2557288244516,
-        "latency_refine_ms": 0.4763593049999599,
+        "qps_refine": 2221.542489462501,
+        "latency_refine_ms": 0.45013768799981335,
         "recall_gain": 0.3852,
-        "qps_retention": 0.9508545907382304
+        "qps_retention": 0.92406651584742
       },
       {
         "nprobe": 256,
         "recall_plain": 0.5958,
-        "qps_plain": 1126.7175805326813,
-        "latency_plain_ms": 0.8875338570001077,
+        "qps_plain": 1295.0054406284794,
+        "latency_plain_ms": 0.7721975280001061,
         "recall_refine": 0.9844,
-        "qps_refine": 985.5687174118847,
-        "latency_refine_ms": 1.0146425939999517,
+        "qps_refine": 1243.9887153171585,
+        "latency_refine_ms": 0.8038658129989926,
         "recall_gain": 0.38860000000000006,
-        "qps_retention": 0.8747256051032192
+        "qps_retention": 0.9606050108279376
       }
     ]
   },
@@ -226,106 +226,106 @@
     "plain_bytes_per_vec": 42.261172,
     "refine_size_bytes": 554261172,
     "refine_bytes_per_vec": 554.261172,
-    "build_time_s": 151.93549784099991,
+    "build_time_s": 139.82258711100076,
     "nprobe_results": [
       {
         "nprobe": 1,
         "recall_plain": 0.2904,
-        "qps_plain": 16409.81585295376,
-        "latency_plain_ms": 0.06093913600011546,
+        "qps_plain": 19836.90768926803,
+        "latency_plain_ms": 0.05041108300065388,
         "recall_refine": 0.30304,
-        "qps_refine": 11609.667918450987,
-        "latency_refine_ms": 0.08613510800000768,
+        "qps_refine": 14237.150551212842,
+        "latency_refine_ms": 0.07023877400206402,
         "recall_gain": 0.012639999999999985,
-        "qps_retention": 0.7074831321986621
+        "qps_retention": 0.7177101781299958
       },
       {
         "nprobe": 2,
         "recall_plain": 0.41544000000000003,
-        "qps_plain": 15607.827244192762,
-        "latency_plain_ms": 0.06407041700003901,
+        "qps_plain": 17857.503195848432,
+        "latency_plain_ms": 0.05599887000062154,
         "recall_refine": 0.44556,
-        "qps_refine": 9437.919690716471,
-        "latency_refine_ms": 0.10595555300005799,
+        "qps_refine": 12681.855428911842,
+        "latency_refine_ms": 0.07885281500057317,
         "recall_gain": 0.03011999999999998,
-        "qps_retention": 0.6046914501970836
+        "qps_retention": 0.7101695735303107
       },
       {
         "nprobe": 4,
         "recall_plain": 0.53356,
-        "qps_plain": 12726.572603802257,
-        "latency_plain_ms": 0.07857575100001668,
+        "qps_plain": 14976.418804712865,
+        "latency_plain_ms": 0.06677163700078381,
         "recall_refine": 0.5978399999999999,
-        "qps_refine": 8630.387532353083,
-        "latency_refine_ms": 0.11586965200012857,
+        "qps_refine": 10696.616165190346,
+        "latency_refine_ms": 0.09348750899880542,
         "recall_gain": 0.06427999999999989,
-        "qps_retention": 0.6781391817758242
+        "qps_retention": 0.714230571718806
       },
       {
         "nprobe": 8,
         "recall_plain": 0.6275799999999999,
-        "qps_plain": 8167.344844873141,
-        "latency_plain_ms": 0.12243881199992757,
+        "qps_plain": 11626.995339147015,
+        "latency_plain_ms": 0.08600674300032551,
         "recall_refine": 0.7398,
-        "qps_refine": 6720.130727505323,
-        "latency_refine_ms": 0.14880662900009156,
+        "qps_refine": 8533.549971782044,
+        "latency_refine_ms": 0.11718452499917476,
         "recall_gain": 0.1122200000000001,
-        "qps_retention": 0.8228048227599607
+        "qps_retention": 0.7339428393034934
       },
       {
         "nprobe": 16,
         "recall_plain": 0.69048,
-        "qps_plain": 6538.224937707667,
-        "latency_plain_ms": 0.1529467109999132,
+        "qps_plain": 7895.008201876222,
+        "latency_plain_ms": 0.12666231299954234,
         "recall_refine": 0.8542400000000001,
-        "qps_refine": 5267.93094515754,
-        "latency_refine_ms": 0.18982784900003932,
+        "qps_refine": 6266.85124972204,
+        "latency_refine_ms": 0.15956976799861877,
         "recall_gain": 0.16376000000000013,
-        "qps_retention": 0.8057127118365098
+        "qps_retention": 0.793773874513866
       },
       {
         "nprobe": 32,
         "recall_plain": 0.72304,
-        "qps_plain": 3972.9405087881923,
-        "latency_plain_ms": 0.2517027369999596,
+        "qps_plain": 4814.042399910185,
+        "latency_plain_ms": 0.20772563200080185,
         "recall_refine": 0.9321400000000002,
-        "qps_refine": 3480.2140988750493,
-        "latency_refine_ms": 0.28733864399987397,
+        "qps_refine": 4213.8914674066855,
+        "latency_refine_ms": 0.23731033600051887,
         "recall_gain": 0.20910000000000017,
-        "qps_retention": 0.8759794140326979
+        "qps_retention": 0.87533326824984
       },
       {
         "nprobe": 64,
         "recall_plain": 0.73918,
-        "qps_plain": 2099.4797365335576,
-        "latency_plain_ms": 0.4763084790001812,
+        "qps_plain": 2812.524352052354,
+        "latency_plain_ms": 0.3555524770017655,
         "recall_refine": 0.97646,
-        "qps_refine": 2070.159052452303,
-        "latency_refine_ms": 0.48305467099999083,
+        "qps_refine": 2556.271746770175,
+        "latency_refine_ms": 0.3911947160013369,
         "recall_gain": 0.23728000000000005,
-        "qps_retention": 0.9860343095620129
+        "qps_retention": 0.9088887514537656
       },
       {
         "nprobe": 128,
         "recall_plain": 0.74384,
-        "qps_plain": 1141.5062321988007,
-        "latency_plain_ms": 0.8760355150000123,
+        "qps_plain": 1536.8088542225712,
+        "latency_plain_ms": 0.6506990099987888,
         "recall_refine": 0.9939800000000001,
-        "qps_refine": 1126.7274242636772,
-        "latency_refine_ms": 0.8875261030000274,
+        "qps_refine": 1470.059154514731,
+        "latency_refine_ms": 0.6802447350019065,
         "recall_gain": 0.25014000000000014,
-        "qps_retention": 0.9870532393794679
+        "qps_retention": 0.956566036482392
       },
       {
         "nprobe": 256,
         "recall_plain": 0.74492,
-        "qps_plain": 631.2298555971438,
-        "latency_plain_ms": 1.584208970999953,
+        "qps_plain": 819.4263616741368,
+        "latency_plain_ms": 1.2203659129991138,
         "recall_refine": 0.9990600000000001,
-        "qps_refine": 606.3639497325653,
-        "latency_refine_ms": 1.649174559999892,
+        "qps_refine": 796.9646758716127,
+        "latency_refine_ms": 1.2547607570013497,
         "recall_gain": 0.25414000000000003,
-        "qps_retention": 0.9606072088572943
+        "qps_retention": 0.9725885242981034
       }
     ]
   },
@@ -336,106 +336,106 @@
     "plain_bytes_per_vec": 74.261172,
     "refine_size_bytes": 586261172,
     "refine_bytes_per_vec": 586.261172,
-    "build_time_s": 158.129749985,
+    "build_time_s": 143.14878925099765,
     "nprobe_results": [
       {
         "nprobe": 1,
         "recall_plain": 0.29988000000000004,
-        "qps_plain": 14528.2600591031,
-        "latency_plain_ms": 0.06883136700002979,
+        "qps_plain": 17829.30208406403,
+        "latency_plain_ms": 0.05608744499841123,
         "recall_refine": 0.30304,
-        "qps_refine": 9351.623600366584,
-        "latency_refine_ms": 0.10693330300000527,
+        "qps_refine": 13219.327211073778,
+        "latency_refine_ms": 0.0756468150029832,
         "recall_gain": 0.0031599999999999406,
-        "qps_retention": 0.6436850360829722
+        "qps_retention": 0.7414382878671014
       },
       {
         "nprobe": 2,
         "recall_plain": 0.43772000000000005,
-        "qps_plain": 13181.276760855852,
-        "latency_plain_ms": 0.07586518500011152,
+        "qps_plain": 15316.48882089677,
+        "latency_plain_ms": 0.0652891149984498,
         "recall_refine": 0.44556,
-        "qps_refine": 9254.185908896623,
-        "latency_refine_ms": 0.10805920799998603,
+        "qps_refine": 11175.758902670734,
+        "latency_refine_ms": 0.08947938200071803,
         "recall_gain": 0.007839999999999958,
-        "qps_retention": 0.7020705260038675
+        "qps_retention": 0.7296554081914187
       },
       {
         "nprobe": 4,
         "recall_plain": 0.57982,
-        "qps_plain": 7679.1307174866815,
-        "latency_plain_ms": 0.13022307300002467,
+        "qps_plain": 11837.086602945994,
+        "latency_plain_ms": 0.08448024700192036,
         "recall_refine": 0.5978399999999999,
-        "qps_refine": 7375.864114756982,
-        "latency_refine_ms": 0.1355773349998799,
+        "qps_refine": 8743.235369747492,
+        "latency_refine_ms": 0.11437413699968602,
         "recall_gain": 0.018019999999999925,
-        "qps_retention": 0.9605076910542609
+        "qps_retention": 0.7386306836321946
       },
       {
         "nprobe": 8,
         "recall_plain": 0.70306,
-        "qps_plain": 6283.6689191686,
-        "latency_plain_ms": 0.159142693999911,
+        "qps_plain": 7670.181931357497,
+        "latency_plain_ms": 0.13037500400241697,
         "recall_refine": 0.7398,
-        "qps_refine": 5058.672097768827,
-        "latency_refine_ms": 0.19768033599984844,
+        "qps_refine": 6457.991982788713,
+        "latency_refine_ms": 0.15484689399818308,
         "recall_gain": 0.036739999999999995,
-        "qps_retention": 0.8050507057011124
+        "qps_retention": 0.8419607306036552
       },
       {
         "nprobe": 16,
         "recall_plain": 0.79428,
-        "qps_plain": 3765.467750772934,
-        "latency_plain_ms": 0.26557125599993014,
+        "qps_plain": 5129.599695444688,
+        "latency_plain_ms": 0.19494698599737603,
         "recall_refine": 0.8542400000000001,
-        "qps_refine": 3301.951487339312,
-        "latency_refine_ms": 0.3028512089999822,
+        "qps_refine": 4365.527961189892,
+        "latency_refine_ms": 0.22906736799995997,
         "recall_gain": 0.059960000000000124,
-        "qps_retention": 0.8769034037435385
+        "qps_retention": 0.8510465183212395
       },
       {
         "nprobe": 32,
         "recall_plain": 0.8476799999999999,
-        "qps_plain": 2492.810820841297,
-        "latency_plain_ms": 0.401153585999964,
+        "qps_plain": 2996.169648752713,
+        "latency_plain_ms": 0.3337594720032939,
         "recall_refine": 0.9321400000000002,
-        "qps_refine": 2103.417880313047,
-        "latency_refine_ms": 0.4754167060000328,
+        "qps_refine": 2707.8785344298585,
+        "latency_refine_ms": 0.3692927829979453,
         "recall_gain": 0.08446000000000031,
-        "qps_retention": 0.8437936255440219
+        "qps_retention": 0.9037801099003628
       },
       {
         "nprobe": 64,
         "recall_plain": 0.874,
-        "qps_plain": 1179.1155010569773,
-        "latency_plain_ms": 0.8480933370001366,
+        "qps_plain": 1665.3332509878173,
+        "latency_plain_ms": 0.6004804139993212,
         "recall_refine": 0.97654,
-        "qps_refine": 1167.859625347188,
-        "latency_refine_ms": 0.8562672929999735,
+        "qps_refine": 1543.7932826963518,
+        "latency_refine_ms": 0.6477551179996226,
         "recall_gain": 0.10253999999999996,
-        "qps_retention": 0.990453966808426
+        "qps_retention": 0.9270176295228764
       },
       {
         "nprobe": 128,
         "recall_plain": 0.8831,
-        "qps_plain": 663.7858912142348,
-        "latency_plain_ms": 1.5065098750001198,
+        "qps_plain": 868.3867946118543,
+        "latency_plain_ms": 1.151560579000943,
         "recall_refine": 0.9941,
-        "qps_refine": 646.3414543579723,
-        "latency_refine_ms": 1.547169832999998,
+        "qps_refine": 839.0508404165528,
+        "latency_refine_ms": 1.19182289300079,
         "recall_gain": 0.11099999999999999,
-        "qps_retention": 0.9737197836122246
+        "qps_retention": 0.9662178716013134
       },
       {
         "nprobe": 256,
         "recall_plain": 0.8854,
-        "qps_plain": 355.7478554541015,
-        "latency_plain_ms": 2.8109796999999617,
+        "qps_plain": 452.595020170064,
+        "latency_plain_ms": 2.209480784000334,
         "recall_refine": 0.9992,
-        "qps_refine": 353.91276084843344,
-        "latency_refine_ms": 2.8255550820001645,
+        "qps_refine": 444.5313179161774,
+        "latency_refine_ms": 2.2495602889976,
         "recall_gain": 0.11380000000000001,
-        "qps_retention": 0.9948415863158876
+        "qps_retention": 0.9821834048221373
       }
     ]
   }

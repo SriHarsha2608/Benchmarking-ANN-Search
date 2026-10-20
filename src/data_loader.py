@@ -67,9 +67,10 @@ def load_dataset(
     if is_glove:
         faiss.normalize_L2(train)
         faiss.normalize_L2(test)
-        # Note: In glove-100-angular, distance is 1 - cos(theta).
-        # For unit vectors: ||u - v||^2 = 2 * (1 - cos(theta)), so ||u - v|| = sqrt(2 * (1 - cos(theta))).
-        # The ordering of neighbors is identical.
+        # Note: In glove-100-angular, stored distance is angular: 1 - cos(theta).
+        # For unit vectors: ||u - v||^2 = 2 * (1 - cos(theta)).
+        # Converting distances to squared L2 aligns ground-truth distances with FAISS IndexFlatL2 units.
+        distances = distances * 2.0
 
     dim = train.shape[1]
     return {

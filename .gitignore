@@ -42,3 +42,10 @@ Thumbs.db
 scratch/
 tmp/
 A3.md
+/*.png
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk

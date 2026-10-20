@@ -15,10 +15,10 @@
 
 | Setting ($m$) | Plain Max Recall | Plain QPS @ Max | Refined Recall @ nprobe=64 | Refined QPS | Refined Recall @ nprobe=128 | Refined QPS | Reaches Recall 0.95? |
 |:-------------:|:----------------:|:---------------:|:---------------------------:|:-----------:|:----------------------------:|:-----------:|:--------------------:|
-| m=8 | 0.4138 | 1788.9 | 0.8821 | 4258.6 | 0.8883 | 2599.9 | No |
-| m=16 | 0.5958 | 1126.7 | 0.9661 | 3433.7 | 0.9806 | 2099.3 | Yes |
-| m=32 | 0.7449 | 631.2 | 0.9765 | 2070.2 | 0.9940 | 1126.7 | Yes |
-| m=64 | 0.8854 | 355.7 | 0.9765 | 1167.9 | 0.9941 | 646.3 | Yes |
+| m=8 | 0.4138 | 1941.5 | 0.8821 | 4723.3 | 0.8883 | 3100.1 | No |
+| m=16 | 0.5958 | 1295.0 | 0.9661 | 3664.4 | 0.9806 | 2221.5 | Yes |
+| m=32 | 0.7449 | 819.4 | 0.9765 | 2556.3 | 0.9940 | 1470.1 | Yes |
+| m=64 | 0.8854 | 452.6 | 0.9765 | 1543.8 | 0.9941 | 839.1 | Yes |
 
 ## 3. QPS and Recall at Standard Targets (Recall = 0.90 and 0.95)
 
@@ -27,8 +27,8 @@
 | Plain IVF-PQ (m=8) | N/A | - | N/A (Ceiling) | - |
 | Re-ranked IVF-PQ (m=8) | N/A | - | N/A | - |
 | Plain IVF-PQ (m=16) | N/A | - | N/A (Ceiling) | - |
-| Re-ranked IVF-PQ (m=16) | 4771.7 | nprobe=32 | 3433.7 | nprobe=64 |
+| Re-ranked IVF-PQ (m=16) | 5613.7 | nprobe=32 | 3664.4 | nprobe=64 |
 | Plain IVF-PQ (m=32) | N/A | - | N/A (Ceiling) | - |
-| Re-ranked IVF-PQ (m=32) | 3480.2 | nprobe=32 | 2070.2 | nprobe=64 |
+| Re-ranked IVF-PQ (m=32) | 4213.9 | nprobe=32 | 2556.3 | nprobe=64 |
 | Plain IVF-PQ (m=64) | N/A | - | N/A (Ceiling) | - |
-| Re-ranked IVF-PQ (m=64) | 2103.4 | nprobe=32 | 1167.9 | nprobe=64 |
+| Re-ranked IVF-PQ (m=64) | 2707.9 | nprobe=32 | 1543.8 | nprobe=64 |

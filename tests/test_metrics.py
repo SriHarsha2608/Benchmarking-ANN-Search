@@ -147,3 +147,34 @@ def test_input_validation():
     with pytest.raises(ValueError):
         recall_at_k_single(np.arange(10), np.arange(10), true_distances=np.arange(5), k=10)
 
+
+def test_real_data_exact_search_agreement():
+    """
+    Integration test confirming that FAISS exact search achieves Recall@10 == 1.0
+    against the ground-truth stored in real datasets (as required by Part 1 of A3.md).
+    """
+    import os
+    import faiss
+    from src.data_loader import load_dataset, get_query_split
+
+    for ds_name in ["sift", "glove"]:
+        filename = "sift-128-euclidean.hdf5" if ds_name == "sift" else "glove-100-angular.hdf5"
+        filepath = os.path.join("data", filename)
+        if not os.path.exists(filepath):
+            pytest.skip(f"Dataset file {filepath} not found.")
+
+        ds = load_dataset(ds_name, data_dir="data")
+        queries, true_neighbors, true_distances = get_query_split(ds, split="test")
+
+        sub_queries = queries[:100]
+        sub_neighbors = true_neighbors[:100]
+        sub_distances = true_distances[:100]
+
+        index = faiss.IndexFlatL2(ds["dim"])
+        index.add(ds["train"])
+        D, I = index.search(sub_queries, 10)
+
+        agreement = compute_recall_at_k(I, sub_neighbors, sub_distances, k=10)
+        assert agreement == pytest.approx(1.0, abs=1e-5)
+
+
