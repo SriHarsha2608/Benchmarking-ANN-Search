@@ -14,6 +14,11 @@ Benchmarking-ANN-Search/
 ├── run_all.sh                  # One-command reproduction script (full and --quick)
 ├── hypothesis.md               # Pre-registered hypotheses and empirical evaluations
 ├── report.tex                  # Complete academic report in LaTeX (Part 5)
+├── report.pdf                  # Pre-compiled academic report (Part 5, at most 5 pages)
+├── ai log/                     # AI usage documentation (Moodle deliverable)
+│   ├── ai statement.md         # Source file authorship statement
+│   └── prompts_and_responses.md# Transcripts of AI tool interactions
+├── ai_log/                     # Alias for ai log/
 ├── data/                       # Dataset directory (excluded from git)
 │   ├── sift-128-euclidean.hdf5
 │   └── glove-100-angular.hdf5

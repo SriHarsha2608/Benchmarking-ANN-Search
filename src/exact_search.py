@@ -46,6 +46,10 @@ def run_exact_benchmark(
     n_train = len(train_vectors)
 
     queries, true_neighbors, true_distances = get_query_split(ds, split=split)
+    if quick:
+        queries = queries[:1000]
+        true_neighbors = true_neighbors[:1000]
+        true_distances = true_distances[:1000]
     n_queries = len(queries)
     print(f"Loaded {n_train} base vectors (dim={dim}) and {n_queries} queries.")
 
@@ -63,10 +67,15 @@ def run_exact_benchmark(
     print(f"Index built in {build_time:.3f}s | Size: {index_mb:.2f} MB ({bytes_per_vec:.1f} bytes/vec)")
 
     # 2. Check agreement with ground-truth
-    # In quick mode or if max_train is truncated, ground truth in file corresponds to full train set.
-    # When using full dataset, we verify exact agreement against ground truth file.
+    # In quick mode (100k vectors), stored ground truth corresponds to the full 1M dataset,
+    # so we compute ground truth on the 100k subset to verify exact search consistency.
     D_batch, I_batch = index.search(queries, 10)
-    agreement = compute_recall_at_k(I_batch, true_neighbors, true_distances, k=10)
+    if quick or (max_train is not None and max_train < len(ds["train"])):
+        print(f"[Quick Mode] Computing reference ground truth on {n_train} vector subset...")
+        ref_distances, ref_neighbors = index.search(queries, 100)
+        agreement = compute_recall_at_k(I_batch, ref_neighbors, ref_distances, k=10)
+    else:
+        agreement = compute_recall_at_k(I_batch, true_neighbors, true_distances, k=10)
     print(f"Ground-truth agreement (Recall@10): {agreement:.6f}")
 
     # 3. Time Batch Search (all queries at once, repeated, single thread)

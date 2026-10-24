@@ -86,12 +86,22 @@ def run_compression_experiment(
 
     # 1. Load SIFT dataset
     print("\n[1/4] Loading SIFT-128 dataset...")
-    sift_data = load_dataset("sift", data_dir=data_dir)
+    max_train = 100000 if quick else None
+    sift_data = load_dataset("sift", data_dir=data_dir, max_train_vectors=max_train)
     train = sift_data["train"]
-    queries, true_neighbors, true_distances = get_query_split(sift_data, split="test")
-
     dim = train.shape[1]
     n_train = len(train)
+
+    if quick:
+        print(f"[Quick Mode] Computing ground truth on 100k SIFT vectors...")
+        raw_queries, _, _ = get_query_split(sift_data, split="test")
+        queries = raw_queries[:1000]
+        exact_idx = faiss.IndexFlatL2(dim)
+        exact_idx.add(train)
+        true_distances, true_neighbors = exact_idx.search(queries, 100)
+    else:
+        queries, true_neighbors, true_distances = get_query_split(sift_data, split="test")
+
     n_queries = len(queries)
     print(f"  Base vectors: {n_train:,} (dim={dim})")
     print(f"  Evaluation queries: {n_queries:,} (split='test')")

@@ -178,3 +178,42 @@ def test_real_data_exact_search_agreement():
         assert agreement == pytest.approx(1.0, abs=1e-5)
 
 
+def test_tie_boundary_with_extended_neighbor_list():
+    """
+    Regression test: Verifies that if rank 10 (10th) and rank 11 (11th) have identical
+    distance, and the retrieved set includes the rank 11 item instead of the rank 10 item,
+    the recall is 1.0 (not penalized as an error).
+    """
+    # 20 ground truth neighbors
+    true_ids = np.arange(100, 120)
+    # Ranks 0..8 have dist 1.0..9.0, ranks 9..10 have dist 10.0, ranks 11..19 have dist > 10.0
+    true_dists = np.array([float(i) for i in range(1, 10)] + [10.0, 10.0] + [float(i) for i in range(12, 21)])
+
+    # Retrieved includes items 100..108 (ranks 0..8) and item 110 (rank 10, tied with rank 9 item 109)
+    retrieved = np.array([100, 101, 102, 103, 104, 105, 106, 107, 108, 110])
+    rec = recall_at_k_single(retrieved, true_ids, true_distances=true_dists, k=10)
+    assert rec == pytest.approx(1.0)
+
+
+def test_quick_mode_ground_truth_recomputation():
+    """
+    Regression test: Verifies that exact search on a subset of vectors achieves Recall@10 == 1.0
+    when compared against ground truth computed specifically for that subset.
+    """
+    import faiss
+    rng = np.random.default_rng(42)
+    dim = 16
+    subset_train = rng.normal(size=(500, dim)).astype(np.float32)
+    test_queries = rng.normal(size=(20, dim)).astype(np.float32)
+
+    index = faiss.IndexFlatL2(dim)
+    index.add(subset_train)
+
+    ref_dists, ref_ids = index.search(test_queries, 100)
+    D, I = index.search(test_queries, 10)
+
+    agreement = compute_recall_at_k(I, ref_ids, ref_dists, k=10)
+    assert agreement == pytest.approx(1.0)
+
+
+

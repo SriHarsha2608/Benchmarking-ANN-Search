@@ -335,7 +335,11 @@ def run_benchmark_for_dataset(
         pq_nprobe = [1, 4, 16, 64]
     else:
         hnsw_m = [16, 32]
-        hnsw_ef_search = [10, 20, 35, 60, 100, 160, 256, 400]
+        # GloVe requires higher efSearch (up to 1200) to reach recall >= 0.95 due to high intrinsic dimensionality
+        if ds["name"] == "glove":
+            hnsw_ef_search = [10, 20, 35, 60, 100, 160, 256, 400, 600, 800, 1200]
+        else:
+            hnsw_ef_search = [10, 20, 35, 60, 100, 160, 256, 400]
         ivf_nlist = [1024, 2048]
         ivf_nprobe = [1, 2, 4, 8, 16, 32, 64, 128, 256]
         pq_nlist = 2048

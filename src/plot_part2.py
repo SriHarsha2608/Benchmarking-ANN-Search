@@ -121,6 +121,8 @@ def generate_plots_and_tables(csv_path: str = "results/results.csv", out_dir: st
         raise FileNotFoundError(f"Results CSV not found: {csv_path}")
 
     df = pd.read_csv(csv_path)
+    # Part 2 benchmark is exclusively on standard datasets (SIFT and GloVe)
+    df = df[df["dataset"].isin(["sift", "glove"])].copy()
 
     # Styles
     colors = {
@@ -139,7 +141,9 @@ def generate_plots_and_tables(csv_path: str = "results/results.csv", out_dir: st
     summary_tables = {}
     markdown_report = []
 
-    for dataset in df["dataset"].unique():
+    # Sort so SIFT appears first, then GloVe
+    part2_datasets = [d for d in ["sift", "glove"] if d in df["dataset"].unique()]
+    for dataset in part2_datasets:
         df_ds = df[df["dataset"] == dataset]
         plt.figure(figsize=(9, 6), dpi=300)
 

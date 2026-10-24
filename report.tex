@@ -51,7 +51,7 @@
 \maketitle
 
 \begin{abstract}
-Dense vector retrieval relies critically on Approximate Nearest Neighbour (ANN) search to overcome the linear scaling bottleneck of exact brute force comparison. In this work, we present an end-to-end empirical benchmark of three dominant ANN index paradigms---Hierarchical Navigable Small World graphs (HNSW), Inverted File with Flat storage (IVF-Flat), and Inverted File with Product Quantization (IVF-PQ)---against exact search across standard benchmarks (SIFT-128 and GloVe-100) and custom synthetic datasets. We evaluate throughput (QPS), recall@10 with exact boundary tie-breaking, build overhead, and memory footprint. We demonstrate that while HNSW achieves highest peak throughput on clustered image descriptors (7,188 QPS at 0.95 recall on SIFT), its advantage shrinks to only $1.15\times$ over IVF-Flat on dense word embeddings (GloVe) due to high intrinsic dimensionality and hubness. Furthermore, we investigate the fundamental recall ceiling of plain IVF-PQ, proving that sub-space quantization distortion is the root cause and that exact re-ranking of the top-100 candidates completely restores recall to $>0.96$ at 3,434 QPS ($95\times$ faster than exact search) while retaining memory savings. Finally, using a parameterized synthetic Gaussian mixture generator ($N=200\text{K}, D=64$), we expose the catastrophic failure mode of space-partitioning under cluster dispersion, where Voronoi boundary scattering causes IVF-Flat recall to drop by $23.8\%$ and prevents both indexes from reaching 0.95 recall.
+Dense vector retrieval relies critically on Approximate Nearest Neighbour (ANN) search to overcome the linear scaling bottleneck of exact brute force comparison. In this work, we present an end-to-end empirical benchmark of three dominant ANN index paradigms---Hierarchical Navigable Small World graphs (HNSW), Inverted File with Flat storage (IVF-Flat), and Inverted File with Product Quantization (IVF-PQ)---against exact search across standard benchmarks (SIFT-128 and GloVe-100) and custom synthetic datasets. We evaluate throughput (QPS), recall@10 with exact boundary tie-breaking, build overhead, and memory footprint. We demonstrate that while HNSW achieves highest peak throughput on clustered image descriptors (7,458 QPS measured, 8,278 QPS interpolated at 0.95 recall on SIFT), its advantage shrinks to only $1.24\times$ over IVF-Flat on dense word embeddings (GloVe) due to high intrinsic dimensionality and hubness. Furthermore, we investigate the fundamental recall ceiling of plain IVF-PQ, proving that sub-space quantization distortion is the root cause and that exact re-ranking of the top-100 candidates completely restores recall to $>0.96$ at 3,664.4 QPS ($87\times$ faster than exact search) while retaining memory savings. Finally, using a parameterized synthetic Gaussian mixture generator ($N=200\text{K}, D=64$), we expose the catastrophic failure mode of space-partitioning under cluster dispersion, where Voronoi boundary scattering causes IVF-Flat recall to drop by $23.8\%$ and prevents both indexes from reaching 0.95 recall.
 \end{abstract}
 
 \section{Introduction \& Exact Baseline (Part 1)}
@@ -63,7 +63,7 @@ All experiments were conducted on a single dedicated machine to maintain measure
     \item \textbf{CPU}: 12th Gen Intel Core i5-12450HX (8 cores, 12 threads, base clock 2.4 GHz, up to 4.4 GHz Turbo, 12 MB L3 cache).
     \item \textbf{Memory}: 12 GB DDR4 RAM (11.5 GiB usable), 8.0 GB Swap.
     \item \textbf{Operating System}: Fedora Linux 44 (Kernel 7.2.11-200.fc44.x86\_64, glibc 2.43).
-    \item \textbf{Software Stack}: Python 3.14.8, FAISS-CPU 1.15.1, NumPy 2.5.4, SciPy 1.15.2, Matplotlib 3.10.1.
+    \item \textbf{Software Stack}: Python 3.14.8, FAISS-CPU 1.15.1, NumPy 2.5.4, SciPy 1.18.1, Matplotlib 3.11.2.
     \item \textbf{Measurement Protocol}: Single-thread execution enforced via \texttt{faiss.omp\_set\_num\_threads(1)}. Latency and QPS are reported as the median of 3 independent runs over test queries (last 5,000 queries of the standard 10,000 query sets).
 \end{itemize}
 
@@ -273,9 +273,9 @@ Figure~\ref{fig:part4_failure}, Figure~\ref{fig:part4_dispersion}, and Table~\re
 \toprule
 \textbf{Setting} & \textbf{IVF Build} & \textbf{IVF $R$ ($np=16$)} & \textbf{IVF Max $R$} & \textbf{HNSW Build} & \textbf{HNSW Max $R$} & \textbf{$\ge 0.95$?} \\
 \midrule
-$\sigma = 0.05$ & 4.19s & 0.9432 & 0.9999 & 14.61s & 0.9670 & \textbf{Yes} \\
-$\sigma = 0.15$ & 4.17s & 0.9431 & 1.0000 & 14.79s & 0.9825 & \textbf{Yes} \\
-$\sigma = 0.35$ & 4.14s & 0.9432 & 1.0000 & 15.21s & 0.9609 & \textbf{Yes} \\
+$\sigma = 0.05$ & 4.19s & 0.9432 & 0.9999 & 14.61s & 0.9784 & \textbf{Yes} \\
+$\sigma = 0.15$ & 4.17s & 0.9431 & 1.0000 & 14.79s & 0.9907 & \textbf{Yes} \\
+$\sigma = 0.35$ & 4.14s & 0.9432 & 1.0000 & 15.21s & 0.9818 & \textbf{Yes} \\
 $\sigma = 0.70$ & 4.14s & \textbf{0.7053} & \textbf{0.9354} & \textbf{17.41s} & \textbf{0.9379} & \textbf{FAIL} \\
 \bottomrule
 \end{tabular}%
@@ -290,9 +290,9 @@ $\sigma = 0.70$ & 4.14s & \textbf{0.7053} & \textbf{0.9354} & \textbf{17.41s} & 
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{Voronoi Boundary Scattering in IVF-Flat}: At $\sigma \le 0.35$, IVF-Flat achieves 100\% recall at $nprobe=32$ ($6,493$ QPS). At $\sigma=0.70$, recall at $nprobe=16$ plummets from $0.9432 \to \mathbf{0.7053}$ ($-23.8\%$), and peaks at $0.9354$ ($nprobe=128$), failing the 0.95 target. \textit{Mechanism}: $k$-means Voronoi partitioning assumes local density concentration. When intra-cluster variance exceeds inter-centroid spacing, true nearest neighbours cross cell boundaries and scatter across dozens of inverted lists.
+    \item \textbf{Voronoi Boundary Scattering in IVF-Flat}: At $\sigma \le 0.35$, IVF-Flat achieves 100\% recall at $nprobe=32$ ($9,402$ QPS). At $\sigma=0.70$, recall at $nprobe=16$ plummets from $0.9432 \to \mathbf{0.7053}$ ($-23.8\%$), and peaks at $0.9354$ ($nprobe=128$), failing the 0.95 target. \textit{Mechanism}: $k$-means Voronoi partitioning assumes local density concentration. When intra-cluster variance exceeds inter-centroid spacing, true nearest neighbours cross cell boundaries and scatter across dozens of inverted lists.
     \item \textbf{Distance Concentration in HNSW}: At $\sigma=0.70$, HNSW recall at $efSearch=40$ collapses from $0.8608 \to \mathbf{0.6688}$, and caps at $0.9379$ ($efSearch=320$), also failing the 0.95 target. \textit{Mechanism}: Extreme dispersion causes distance concentration ($\frac{D_{10}-D_1}{D_1} \to 0$). Greedy routing on the proximity graph loses downhill directional signal, getting trapped in sub-optimal local minima.
-    \item \textbf{Isolated Clique Trapping at $\sigma=0.05$}: At extreme tightness ($\sigma=0.05$), HNSW peak recall ($0.9670$) is lower than under mild dispersion $\sigma=0.15$ ($0.9825$). Tight, distant clusters cause HNSW to form dense intra-cluster cliques with sparse cross-cluster highways, impeding inter-cluster transitions.
+    \item \textbf{Isolated Clique Trapping at $\sigma=0.05$}: At extreme tightness ($\sigma=0.05$), HNSW peak recall ($0.9784$) is lower than under mild dispersion $\sigma=0.15$ ($0.9907$). Tight, distant clusters cause HNSW to form dense intra-cluster cliques with sparse cross-cluster highways, impeding inter-cluster transitions.
     \item \textbf{Resource Scaling}: IVF-Flat build time was invariant to dispersion ($\approx 4.1$s), whereas HNSW build time increased by \textbf{+19.2\%} ($14.61\text{s} \to 17.41\text{s}$) because neighbor search during edge pruning must evaluate broader, less concentrated candidate sets.
 \end{enumerate}
 
