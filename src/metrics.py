@@ -30,7 +30,7 @@ def recall_at_k_single(
         If None, standard set intersection with true_ids[:k] is used.
     k : int, default=10
         Number of top neighbours to evaluate.
-    tol : float, default=1e-5
+    tol : float, default=1e-4
         Absolute tolerance for considering two distances tied.
 
     Returns
@@ -108,7 +108,7 @@ def compute_recall_at_k(
         Array of ground truth distances. Shape matching true_ids.
     k : int, default=10
         Cutoff rank for recall.
-    tol : float, default=1e-5
+    tol : float, default=1e-4
         Distance tolerance for tie detection.
     return_per_query : bool, default=False
         If True, return an array of recalls per query instead of the mean.

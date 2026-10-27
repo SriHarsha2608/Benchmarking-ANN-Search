@@ -311,6 +311,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
 
     args = parser.parse_args()
+    # Single thread for builds as well as searches, so build times are comparable
+    faiss.omp_set_num_threads(1)
     run_geometry_experiment(
         results_csv=args.results_csv,
         summary_json=args.summary_json,

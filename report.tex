@@ -51,7 +51,7 @@
 \maketitle
 
 \begin{abstract}
-Dense vector retrieval relies critically on Approximate Nearest Neighbour (ANN) search to overcome the linear scaling bottleneck of exact brute force comparison. In this work, we present an end-to-end empirical benchmark of three dominant ANN index paradigms---Hierarchical Navigable Small World graphs (HNSW), Inverted File with Flat storage (IVF-Flat), and Inverted File with Product Quantization (IVF-PQ)---against exact search across standard benchmarks (SIFT-128 and GloVe-100) and custom synthetic datasets. We evaluate throughput (QPS), recall@10 with exact boundary tie-breaking, build overhead, and memory footprint. We demonstrate that while HNSW achieves highest peak throughput on clustered image descriptors (7,458 QPS measured, 8,278 QPS interpolated at 0.95 recall on SIFT), its advantage shrinks to only $1.24\times$ over IVF-Flat on dense word embeddings (GloVe) due to high intrinsic dimensionality and hubness. Furthermore, we investigate the fundamental recall ceiling of plain IVF-PQ, proving that sub-space quantization distortion is the root cause and that exact re-ranking of the top-100 candidates completely restores recall to $>0.96$ at 3,664.4 QPS ($87\times$ faster than exact search) while retaining memory savings. Finally, using a parameterized synthetic Gaussian mixture generator ($N=200\text{K}, D=64$), we expose the catastrophic failure mode of space-partitioning under cluster dispersion, where Voronoi boundary scattering causes IVF-Flat recall to drop by $23.8\%$ and prevents both indexes from reaching 0.95 recall.
+Dense vector retrieval relies critically on Approximate Nearest Neighbour (ANN) search to overcome the linear scaling bottleneck of exact brute force comparison. In this work, we present an end-to-end empirical benchmark of three dominant ANN index paradigms---Hierarchical Navigable Small World graphs (HNSW), Inverted File with Flat storage (IVF-Flat), and Inverted File with Product Quantization (IVF-PQ)---against exact search across standard benchmarks (SIFT-128 and GloVe-100) and custom synthetic datasets. We evaluate throughput (QPS), recall@10 with exact boundary tie-breaking, build overhead, and memory footprint. We demonstrate that while HNSW achieves highest peak throughput on clustered image descriptors (8,638 QPS at 0.95 recall on SIFT), its advantage shrinks to only $1.15\times$ over IVF-Flat on dense word embeddings (GloVe) due to high intrinsic dimensionality and hubness. Furthermore, we investigate the fundamental recall ceiling of plain IVF-PQ, proving that sub-space quantization distortion is the root cause and that exact re-ranking of the top-100 candidates completely restores recall to $>0.96$ at 3,973.4 QPS ($88\times$ faster than exact search), at the cost of keeping the uncompressed vectors. Finally, using a parameterized synthetic Gaussian mixture generator ($N=200\text{K}, D=64$), we expose the catastrophic failure mode of space-partitioning under cluster dispersion, where Voronoi boundary scattering causes IVF-Flat recall at $nprobe=16$ to drop by 23.8 percentage points and prevents both indexes from reaching 0.95 recall.
 \end{abstract}
 
 \section{Introduction \& Exact Baseline (Part 1)}
@@ -64,15 +64,15 @@ All experiments were conducted on a single dedicated machine to maintain measure
     \item \textbf{Memory}: 12 GB DDR4 RAM (11.5 GiB usable), 8.0 GB Swap.
     \item \textbf{Operating System}: Fedora Linux 44 (Kernel 7.2.11-200.fc44.x86\_64, glibc 2.43).
     \item \textbf{Software Stack}: Python 3.14.8, FAISS-CPU 1.15.1, NumPy 2.5.4, SciPy 1.18.1, Matplotlib 3.11.2.
-    \item \textbf{Measurement Protocol}: Single-thread execution enforced via \texttt{faiss.omp\_set\_num\_threads(1)}. Latency and QPS are reported as the median of 3 independent runs over test queries (last 5,000 queries of the standard 10,000 query sets).
+    \item \textbf{Measurement Protocol}: Single-thread execution enforced via \texttt{faiss.omp\_set\_num\_threads(1)}. All settings at a recall target are chosen on the tuning half (first 5,000 queries); every reported recall and QPS is measured on the reporting half (last 5,000). QPS is the median of 3 timed passes over the first 1,000 of those queries, issued one query per call.
 \end{itemize}
 
 \subsection{Exact Baseline \& Metric Agreement}
-We implemented exact brute-force search using \texttt{faiss.IndexFlatL2}. Ground-truth nearest neighbours and squared $L_2$ distances provided in the HDF5 datasets were compared against our exact baseline. To prevent counting equidistant candidates as errors, we implemented a custom tie-aware \texttt{recall@10} function:
+We implemented exact brute-force search using \texttt{faiss.IndexFlatL2}. Ground-truth nearest neighbours and distances provided in the HDF5 datasets were compared against our exact baseline. To prevent counting equidistant candidates as errors, we implemented a custom tie-aware \texttt{recall@10} function:
 \begin{equation}
-\text{Recall@}k(\mathcal{I}_q, \mathcal{G}_q) = \frac{1}{k} \sum_{i=1}^k \mathbf{1}\Big( \mathbf{x}_{\mathcal{I}_q[i]} \in \mathcal{G}_q \;\lor\; d(\mathbf{q}, \mathbf{x}_{\mathcal{I}_q[i]}) \le d_k^* + \epsilon \Big)
+\text{Recall@}k = \frac{|\mathcal{I}_q \cap S_q| + \min\big(|\mathcal{I}_q \cap T_q|,\; k - |S_q|\big)}{k}
 \end{equation}
-where $d_k^*$ is the distance to the $k$-th ground-truth neighbour and $\epsilon = 10^{-5}$. The exact search results achieved an exact agreement of $1.000000$ on both SIFT-128 and GloVe-100.
+where $d_k^*$ is the distance to the $k$-th ground-truth neighbour, $S_q = \{g : d_g < d_k^* - \epsilon\}$ are the strictly closer neighbours, $T_q = \{g : |d_g - d_k^*| \le \epsilon\}$ are those tied with the $k$-th, and $\epsilon = 10^{-4}$. The exact search results achieved an exact agreement of $1.000000$ on both SIFT-128 and GloVe-100.
 
 \begin{table}[t]
 \centering
@@ -84,27 +84,27 @@ where $d_k^*$ is the distance to the $k$-th ground-truth neighbour and $\epsilon
 \toprule
 \textbf{Dataset} & \textbf{Build (s)} & \textbf{RAM} & \textbf{1-by-1 QPS} & \textbf{Batch QPS} & \textbf{Speedup} \\
 \midrule
-SIFT-128  & 0.22s & 488 MB & 42.2 & 313.1 & \textbf{7.43$\times$} \\
-GloVe-100 & 0.20s & 451 MB & 45.7 & 315.6 & \textbf{6.91$\times$} \\
+SIFT-128  & 0.20s & 488 MB & 45.0 & 352.1 & \textbf{7.82$\times$} \\
+GloVe-100 & 0.18s & 451 MB & 49.1 & 352.4 & \textbf{7.18$\times$} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
 \subsection{The Batch vs. Single-Query Speedup Mechanism}
-As summarized in Table~\ref{tab:exact_baseline}, evaluating queries in a single matrix batch yields a \textbf{7.43$\times$ speedup on SIFT} (313.1 QPS vs. 42.2 QPS) and \textbf{6.91$\times$ on GloVe} (315.6 QPS vs. 45.7 QPS). This disparity is governed by three architectural mechanisms:
+As summarized in Table~\ref{tab:exact_baseline}, evaluating queries in a single matrix batch yields a \textbf{7.82$\times$ speedup on SIFT} (352.1 QPS vs. 45.0 QPS) and \textbf{7.18$\times$ on GloVe} (352.4 QPS vs. 49.1 QPS). This disparity is governed by three architectural mechanisms:
 \begin{enumerate}
     \item \textbf{Level-3 vs. Level-2 BLAS}: Batch search computes $\|\mathbf{Q} - \mathbf{X}\|^2 = \operatorname{diag}(\mathbf{Q}\mathbf{Q}^T) + \operatorname{diag}(\mathbf{X}\mathbf{X}^T) - 2\mathbf{Q}\mathbf{X}^T$. The matrix product $\mathbf{Q}\mathbf{X}^T$ leverages Level-3 BLAS (\texttt{SGEMM}), achieving high arithmetic intensity through register tiling, loop unrolling, and AVX2 SIMD fusions. In contrast, sequential single-query search evaluates matrix-vector products (\texttt{SGEMV}, Level-2 BLAS), where one vector operand is read per floating-point operation, rendering the computation entirely memory-bandwidth bound.
-    \item \textbf{Cache Locality \& Memory Bus Traffic}: For 5,000 queries, batch search amortizes each L2/L3 cache-line read across all queries. Sequential search forces the CPU to stream the entire 488~MB base dataset from main memory for \textit{every single query}, generating $5,000 \times 488\text{ MB} \approx 2.44\text{ TB}$ of memory traffic across the memory controller, incurring severe cache misses and memory bus saturation.
-    \item \textbf{Instruction \& Thread Synchronization Overhead}: Single-query loops incur 5,000 separate function calls, stack allocations, and OpenMP thread dispatch synchronizations, whereas batch execution invokes the compute kernel in a single call.
+    \item \textbf{Cache Locality \& Memory Bus Traffic}: Batch search amortizes each L2/L3 cache-line read across all queries. Sequential search streams the entire 488~MB base set from main memory for \textit{every query}; at 22.2~ms/query that is $\approx 22$~GB/s, i.e. memory-bandwidth bound.
+    \item \textbf{Instruction \& Thread Synchronization Overhead}: Single-query loops incur 1,000 separate Python-to-C++ calls and allocations, whereas batch execution invokes the compute kernel in a single call.
 \end{enumerate}
 
 \section{Benchmarking Three ANN Indexes (Part 2)}
 We evaluated three established ANN index families:
 \begin{itemize}
-    \item \textbf{HNSW} (\texttt{IndexHNSWFlat}): Multi-layer proximity graph with Delaunay-like greedy routing. Build parameters: $M \in \{16, 32\}$, $efConstruction = 64$. Search parameter: $efSearch \in [10, 1200]$.
-    \item \textbf{IVF-Flat} (\texttt{IndexIVFFlat}): Inverted file with $k$-means Voronoi partitioning. Build parameter: $nlist \in \{1024, 2048, 4096\}$. Search parameter: $nprobe \in [1, 512]$.
-    \item \textbf{IVF-PQ} (\texttt{IndexIVFPQ}): Inverted file with Product Quantization codes ($m=16$, $nbits=8$). Search parameter: $nprobe \in [1, 256]$.
+    \item \textbf{HNSW} (\texttt{IndexHNSWFlat}): Multi-layer proximity graph with Delaunay-like greedy routing. Build parameters: $M \in \{16, 32\}$, $efConstruction = 64$. Search parameter: $efSearch \in [10, 400]$ (SIFT), $[10, 1200]$ (GloVe).
+    \item \textbf{IVF-Flat} (\texttt{IndexIVFFlat}): Inverted file with $k$-means Voronoi partitioning. Build parameter: $nlist \in \{1024, 2048\}$. Search parameter: $nprobe \in [1, 256]$.
+    \item \textbf{IVF-PQ} (\texttt{IndexIVFPQ}): Inverted file with Product Quantization codes ($nlist=2048$, $nbits=8$, $m \in \{16, 32, 64\}$ on SIFT, $\{20, 25, 50\}$ on GloVe). Search parameter: $nprobe \in [1, 128]$.
 \end{itemize}
 
 \begin{figure*}[t]
@@ -131,7 +131,7 @@ Figure~\ref{fig:part2_tradeoffs} shows the Pareto frontiers for both datasets. T
 \begin{table}[t]
 \centering
 \small
-\caption{Queries Per Second (QPS) at Recall Targets (Part 2)}
+\caption{QPS at recall targets (Part 2). For each index the fastest setting whose recall on the tuning half reaches the target is chosen; its QPS on the reporting half is shown.}
 \label{tab:part2_qps}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lcccc}
@@ -140,10 +140,10 @@ Figure~\ref{fig:part2_tradeoffs} shows the Pareto frontiers for both datasets. T
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 \textbf{Index Type} & \textbf{@ 0.90} & \textbf{@ 0.95} & \textbf{@ 0.90} & \textbf{@ 0.95} \\
 \midrule
-\textbf{HNSW}          & 13,528.9 & \textbf{7,457.6} & 1,419.9 & \textbf{446.0} \\
-\textbf{IVF-Flat}      &  3,616.5 & 2,030.0          &   940.2 & 359.2 \\
-\textbf{IVF-PQ} ($m=16$) & N/A      & N/A (max 0.885)  & N/A     & N/A (max 0.829) \\
-\textbf{Exact Brute}   &    42.2 &    42.2          &    45.7 &   45.7 \\
+\textbf{HNSW}          & 14,035.5 & \textbf{8,638.1} & 1,328.5 & \textbf{410.3} \\
+\textbf{IVF-Flat}      &  2,256.7 & 2,175.7          &   720.3 & 357.7 \\
+\textbf{IVF-PQ}        & N/A      & N/A (max 0.883)  & N/A     & N/A (max 0.829) \\
+\textbf{Exact Brute}   &    45.0 &    45.0          &    49.1 &   49.1 \\
 \bottomrule
 \end{tabular}%
 }
@@ -163,23 +163,23 @@ Table~\ref{tab:part2_resources} presents the build time, serialized index size, 
 \textbf{Index} & \textbf{Build (s)} & \textbf{Size (MB)} & \textbf{Bytes/Vec} & \textbf{Recall} \\
 \midrule
 \multicolumn{5}{l}{\textit{\textbf{SIFT-128} (1,000,000 vectors, 128-d, raw = 512 B/vec)}} \\
-HNSW ($M=32$)           & 130.63s & 747.8 MB & 784.1 B & 0.9566 \\
-IVF-Flat ($nlist=2048$) &  37.60s & 496.9 MB & 521.1 B & 0.9609 \\
-IVF-PQ ($m=16$)         &  48.15s &  70.8 MB &  74.3 B & 0.8851 (Ceil.) \\
-Exact                   &   0.22s & 488.3 MB & 512.0 B & 1.0000 \\
+HNSW ($M=32$)           & 114.60s & 747.8 MB & 784.1 B & 0.9566 \\
+IVF-Flat ($nlist=2048$) &  34.14s & 496.9 MB & 521.1 B & 0.9609 \\
+IVF-PQ ($m=64$)         &  44.56s &  69.8 MB &  73.2 B & 0.8831 (Ceil.) \\
+Exact                   &   0.20s & 488.3 MB & 512.0 B & 1.0000 \\
 \midrule
 \multicolumn{5}{l}{\textit{\textbf{GloVe-100} (1,183,514 vectors, 100-d, raw = 400 B/vec)}} \\
-HNSW ($M=32$)           & 208.27s & 758.6 MB & 672.2 B & 0.9597 \\
-IVF-Flat ($nlist=2048$) &  33.97s & 460.9 MB & 408.4 B & 0.9585 \\
-IVF-PQ ($m=20$)         &  42.31s &  66.4 MB &  58.8 B & 0.8291 (Ceil.) \\
-Exact                   &   0.20s & 451.5 MB & 400.0 B & 1.0000 \\
+HNSW ($M=32$)           & 170.51s & 758.6 MB & 672.2 B & 0.9596 \\
+IVF-Flat ($nlist=2048$) &  29.09s & 461.3 MB & 408.7 B & 0.9584 \\
+IVF-PQ ($m=50$)         &  38.27s &  66.4 MB &  58.8 B & 0.8291 (Ceil.) \\
+Exact                   &   0.18s & 451.5 MB & 400.0 B & 1.0000 \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
 \subsection{Why Plain IVF-PQ Fails to Reach High Recall}
-A primary observation across both datasets is that plain IVF-PQ hits an impassable recall ceiling: \textbf{0.885 on SIFT} and \textbf{0.829 on GloVe}, failing to achieve 0.90 or 0.95 recall regardless of the search budget ($nprobe \le 512$). 
+A primary observation across both datasets is that plain IVF-PQ hits an impassable recall ceiling: \textbf{0.883 on SIFT} and \textbf{0.829 on GloVe}, failing to achieve 0.90 or 0.95 recall regardless of the search budget ($nprobe \le 128$). 
 
 The mechanism behind this failure is \textbf{irreducible quantization distortion}. Product Quantization decomposes $\mathbb{R}^D$ into $m$ orthogonal sub-spaces $\mathbb{R}^{D/m}$, quantizing each sub-vector $\mathbf{x}^{(j)}$ to its nearest centroid $\mathbf{c}_k^{(j)}$ from a codebook of size $k^* = 256$ ($8$ bits). During asymmetric distance computation (ADC):
 \begin{equation}
@@ -224,20 +224,20 @@ Figure~\ref{fig:part3_compression} and Table~\ref{tab:part3_results} present the
 \toprule
 \textbf{Setting} & \textbf{Plain Size} & \textbf{Plain Max $R$} & \textbf{Refined $R$ ($np=64$)} & \textbf{Refined QPS} & \textbf{$\ge 0.95$?} \\
 \midrule
-$m=8$  & 17.4 MB (28$\times$) & 0.4138 & 0.8821 & 4,723.3 & No \\
-$m=16$ & 24.0 MB (20$\times$) & 0.5958 & \textbf{0.9661} & \textbf{3,664.4} & \textbf{Yes} \\
-$m=32$ & 39.3 MB (12$\times$) & 0.7449 & \textbf{0.9765} & 2,556.3 & \textbf{Yes} \\
-$m=64$ & 69.8 MB (7$\times$)  & 0.8854 & \textbf{0.9765} & 1,543.8 & \textbf{Yes} \\
+$m=8$  & 17.4 MB (28$\times$) & 0.4174 & 0.8818 & 5,204.5 & No \\
+$m=16$ & 25.0 MB (19.5$\times$) & 0.5958 & \textbf{0.9661} & \textbf{3,973.4} & \textbf{Yes} \\
+$m=32$ & 40.3 MB (12.1$\times$) & 0.7449 & \textbf{0.9765} & 2,744.8 & \textbf{Yes} \\
+$m=64$ & 70.8 MB (6.9$\times$) & 0.8854 & \textbf{0.9765} & 1,694.3 & \textbf{Yes} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
 \begin{enumerate}
-    \item \textbf{Hypothesis 1 (Ceiling vs. $m$) --- Confirmed}: Plain IVF-PQ exhibited strict asymptotic ceilings: $0.4138$ ($m=8$), $0.5958$ ($m=16$), $0.7449$ ($m=32$), and $0.8854$ ($m=64$). Even with $m=64$ ($d'=2$), plain IVF-PQ fails to reach 0.90 recall.
-    \item \textbf{Hypothesis 2 (Restoration via Re-ranking) --- Confirmed}: Re-ranking the top 100 candidates eliminated candidate rank distortion, lifting recall from $0.5930 \to \mathbf{0.9661}$ at $nprobe=64$ for $m=16$ ($+37.3\%$ gain) and reaching $0.999$ for $m=32, 64$. For $m=8$, recall jumped by $+47.6\%$ ($0.4138 \to 0.8899$), but capped below $0.95$ because coarse 16-d sub-vectors displace true 10-NNs outside the top 100 candidate pool.
-    \item \textbf{Hypothesis 3 (QPS Overhead) --- Confirmed}: Re-ranking 100 candidates requires $100 \times 128 \approx 12,800$ FLOPs ($<0.05$ ms), retaining \textbf{85.1\% to 99.5\%} of plain QPS at $nprobe \ge 32$. At $0.9661$ recall, Re-ranked IVF-PQ ($m=16$) achieves \textbf{3,664.4 QPS}---$87\times$ faster than exact search and $1.81\times$ faster than IVF-Flat ($2,030.0$ QPS).
-    \item \textbf{Hypothesis 4 (Memory Trade-off) --- Confirmed}: Plain IVF-PQ compresses the index to 18.3--73.2 B/vec ($7\times$--$28\times$ reduction). Exact re-ranking requires retaining the uncompressed vectors (512 MB, 512 B/vec), proving that re-ranking restores recall by trading away pure in-memory compression.
+    \item \textbf{Hypothesis 1 (Ceiling vs. $m$) --- Confirmed}: Plain IVF-PQ exhibited strict asymptotic ceilings: $0.4174$ ($m=8$), $0.5958$ ($m=16$), $0.7449$ ($m=32$), and $0.8854$ ($m=64$). Even with $m=64$ ($d'=2$), plain IVF-PQ fails to reach 0.90 recall.
+    \item \textbf{Hypothesis 2 (Restoration via Re-ranking) --- Confirmed}: Re-ranking the top 100 candidates eliminated candidate rank distortion, lifting recall from $0.5930 \to \mathbf{0.9661}$ at $nprobe=64$ for $m=16$ ($+37.3\%$ gain) and reaching $0.999$ for $m=32, 64$. For $m=8$, recall jumped by $+47.2$ points ($0.4174 \to 0.8895$), but capped below $0.95$ because coarse 16-d sub-vectors displace true 10-NNs outside the top 100 candidate pool.
+    \item \textbf{Hypothesis 3 (QPS Overhead) --- Partially supported}: Re-ranking 100 candidates costs a fixed $\approx 20\,\mu$s per query (100 random reads of 512-byte vectors plus $\approx 12,800$ FLOPs). It retains \textbf{77\% to 99\%} of plain QPS at $nprobe \ge 32$, but only $\approx 66$--$74\%$ at $nprobe=1$, where the PQ scan itself is so cheap that this fixed cost dominates; the predicted $<20\%$ penalty therefore holds only for $nprobe \ge 64$. At $0.9661$ recall, Re-ranked IVF-PQ ($m=16$) achieves \textbf{3,973.4 QPS}---$88\times$ faster than exact search and $1.83\times$ faster than IVF-Flat ($2,175.7$ QPS).
+    \item \textbf{Hypothesis 4 (Memory Trade-off) --- Partially supported}: Plain IVF-PQ compresses the index to 18.3--74.3 B/vec ($6.9\times$--$28\times$ reduction), less than the predicted $8\times$--$64\times$ because every inverted-list entry also stores an 8-byte vector id next to its $m$-byte code. Exact re-ranking requires retaining the uncompressed vectors (512 MB, 512 B/vec), proving that re-ranking restores recall by trading away pure in-memory compression.
 \end{enumerate}
 
 \section{Custom Data Experiment: Geometric Cluster Dispersion Failure Mode (Part 4)}
@@ -261,7 +261,7 @@ We benchmarked IVF-Flat ($nlist=1024, nprobe \in [1, 128]$) and HNSW ($M=16, efC
 \end{figure*}
 
 \subsection{Empirical Findings \& Mechanisms}
-Figure~\ref{fig:part4_failure}, Figure~\ref{fig:part4_dispersion}, and Table~\ref{tab:part4_results} illustrate the failure mechanisms.
+Figure~\ref{fig:part4_failure} and Table~\ref{tab:part4_results} illustrate the failure mechanisms.
 
 \begin{table}[t]
 \centering
@@ -273,71 +273,65 @@ Figure~\ref{fig:part4_failure}, Figure~\ref{fig:part4_dispersion}, and Table~\re
 \toprule
 \textbf{Setting} & \textbf{IVF Build} & \textbf{IVF $R$ ($np=16$)} & \textbf{IVF Max $R$} & \textbf{HNSW Build} & \textbf{HNSW Max $R$} & \textbf{$\ge 0.95$?} \\
 \midrule
-$\sigma = 0.05$ & 4.19s & 0.9432 & 0.9999 & 14.61s & 0.9784 & \textbf{Yes} \\
-$\sigma = 0.15$ & 4.17s & 0.9431 & 1.0000 & 14.79s & 0.9907 & \textbf{Yes} \\
-$\sigma = 0.35$ & 4.14s & 0.9432 & 1.0000 & 15.21s & 0.9818 & \textbf{Yes} \\
-$\sigma = 0.70$ & 4.14s & \textbf{0.7053} & \textbf{0.9354} & \textbf{17.41s} & \textbf{0.9379} & \textbf{FAIL} \\
+$\sigma = 0.05$ & 4.24s & 0.9432 & 0.9999 & 13.77s & 0.9784 & \textbf{Yes} \\
+$\sigma = 0.15$ & 3.96s & 0.9431 & 1.0000 & 14.20s & 0.9907 & \textbf{Yes} \\
+$\sigma = 0.35$ & 3.95s & 0.9432 & 1.0000 & 14.69s & 0.9818 & \textbf{Yes} \\
+$\sigma = 0.70$ & 3.84s & \textbf{0.7053} & \textbf{0.9354} & \textbf{15.74s} & \textbf{0.9379} & \textbf{FAIL} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.75\linewidth, height=2.8cm]{part4_dispersion_impact.png}
-    \caption{Direct degradation of Recall@10 as cluster dispersion $\sigma$ increases from 0.05 to 0.70 across fixed search budgets.}
-    \label{fig:part4_dispersion}
-\end{figure}
-
 \begin{enumerate}
-    \item \textbf{Voronoi Boundary Scattering in IVF-Flat}: At $\sigma \le 0.35$, IVF-Flat achieves 100\% recall at $nprobe=32$ ($9,402$ QPS). At $\sigma=0.70$, recall at $nprobe=16$ plummets from $0.9432 \to \mathbf{0.7053}$ ($-23.8\%$), and peaks at $0.9354$ ($nprobe=128$), failing the 0.95 target. \textit{Mechanism}: $k$-means Voronoi partitioning assumes local density concentration. When intra-cluster variance exceeds inter-centroid spacing, true nearest neighbours cross cell boundaries and scatter across dozens of inverted lists.
-    \item \textbf{Distance Concentration in HNSW}: At $\sigma=0.70$, HNSW recall at $efSearch=40$ collapses from $0.8608 \to \mathbf{0.6688}$, and caps at $0.9379$ ($efSearch=320$), also failing the 0.95 target. \textit{Mechanism}: Extreme dispersion causes distance concentration ($\frac{D_{10}-D_1}{D_1} \to 0$). Greedy routing on the proximity graph loses downhill directional signal, getting trapped in sub-optimal local minima.
-    \item \textbf{Isolated Clique Trapping at $\sigma=0.05$}: At extreme tightness ($\sigma=0.05$), HNSW peak recall ($0.9784$) is lower than under mild dispersion $\sigma=0.15$ ($0.9907$). Tight, distant clusters cause HNSW to form dense intra-cluster cliques with sparse cross-cluster highways, impeding inter-cluster transitions.
-    \item \textbf{Resource Scaling}: IVF-Flat build time was invariant to dispersion ($\approx 4.1$s), whereas HNSW build time increased by \textbf{+19.2\%} ($14.61\text{s} \to 17.41\text{s}$) because neighbor search during edge pruning must evaluate broader, less concentrated candidate sets.
+    \item \textbf{Voronoi Boundary Scattering in IVF-Flat}: At $\sigma \le 0.35$, IVF-Flat achieves 100\% recall at $nprobe=32$ ($\approx 9{,}500$ QPS). At $\sigma=0.70$, recall at $nprobe=16$ plummets from $0.9432 \to \mathbf{0.7053}$ ($-23.8$ points), and peaks at $0.9354$ ($nprobe=128$), failing the 0.95 target. \textit{Mechanism}: centroids are near-orthogonal on a radius-3 sphere, so clusters are $\approx 4.2$ apart. A point's own-cluster neighbours lie at $\approx \sigma\sqrt{2D}$; at $\sigma=0.35$ that is 4.0 vs.\ 5.8 to other clusters, but at $\sigma=0.70$ it is 7.9 vs.\ 9.0, so clusters overlap, neighbours come from several clusters and scatter across many cells. For $\sigma \le 0.35$ IVF recall is almost identical because, with a fixed seed, each cluster is the same point cloud rescaled and the problem is scale-invariant. \textbf{H1 --- partially supported}: the predicted collapse at $\sigma=0.70$ happened, but the predicted $>0.95$ recall at $nprobe \le 2$ for tight clusters did not (0.16 at $nprobe=1$), because $nlist=1024 \gg K=50$ splits every cluster into $\sim$20 cells.
+    \item \textbf{Distance Concentration in HNSW}: At $\sigma=0.70$, HNSW recall at $efSearch=40$ falls from $0.8530$ (control) to $\mathbf{0.6688}$, and caps at $0.9379$ ($efSearch=320$), also failing the 0.95 target. \textbf{H2 --- not supported}: HNSW is not more robust than IVF-Flat (0.938 vs.\ 0.935 at their largest budgets) and stays below 0.90 at $efSearch=40$ even in the control. \textit{Mechanism}: Extreme dispersion causes distance concentration ($\frac{D_{10}-D_1}{D_1} \to 0$). Greedy routing on the proximity graph loses downhill directional signal, getting trapped in sub-optimal local minima.
+    \item \textbf{Isolated Clique Trapping at $\sigma=0.05$}: At extreme tightness ($\sigma=0.05$), HNSW peak recall ($0.9784$) is lower than under mild dispersion $\sigma=0.15$ ($0.9907$). This is consistent with H3 (tight, distant clusters leave few cross-cluster edges), but the gap is 1.2 points from a single seed and build, so we treat it as weak evidence.
+    \item \textbf{Resource Scaling}: IVF-Flat build time was invariant to dispersion ($\approx 4$s), whereas HNSW build time increased by \textbf{+14\%} ($13.77\text{s} \to 15.74\text{s}$) because neighbor search during edge pruning must evaluate broader, less concentrated candidate sets (H4 supported, one build per setting).
 \end{enumerate}
+\textbf{Not tested}: other seeds, other $nlist$/$M$ values, IVF-PQ, and queries drawn from a different distribution than the data.
 
 \section{Synthesis \& System Analysis (Part 5)}
 
 \subsection{Q1: Fastest Index at Recall 0.95 Across Datasets}
 At recall 0.95, \textbf{HNSW is the fastest index on both datasets, but its relative advantage changes drastically}:
 \begin{itemize}
-    \item On \textbf{SIFT-128}: HNSW achieves \textbf{7,457.6 QPS}, outperforming IVF-Flat ($2,030.0$ QPS) by \textbf{3.67$\times$} and exact search ($42.2$ QPS) by \textbf{177$\times$}.
-    \item On \textbf{GloVe-100}: HNSW achieves \textbf{446.0 QPS}, outperforming IVF-Flat ($359.2$ QPS) by only \textbf{1.24$\times$} and exact search ($45.7$ QPS) by \textbf{9.8$\times$}.
+    \item On \textbf{SIFT-128}: HNSW achieves \textbf{8,638.1 QPS}, outperforming IVF-Flat ($2,175.7$ QPS) by \textbf{3.97$\times$} and exact search ($45.0$ QPS) by \textbf{192$\times$}.
+    \item On \textbf{GloVe-100}: HNSW achieves \textbf{410.3 QPS}, outperforming IVF-Flat ($357.7$ QPS) by only \textbf{1.15$\times$} and exact search ($49.1$ QPS) by \textbf{8.4$\times$}.
 \end{itemize}
-\textbf{The Geometric Mechanism}: SIFT descriptors represent local visual gradients with low intrinsic dimensionality clustered around visual primitives. HNSW's upper-layer highway edges navigate between clusters in $\mathcal{O}(\log N)$ hops, entering the target cluster near the query. In contrast, GloVe word embeddings populate a dense, high-dimensional spherical shell with severe \textbf{hubness}---certain hub words (e.g., common syntactic words) appear among the nearest neighbours of thousands of queries. Hub nodes create high graph in-degrees that distort greedy routing, forcing HNSW to expand deep search buffers ($efSearch \ge 800$) to circumvent hubs, eroding its speed advantage over inverted list scanning.
+\textbf{The Geometric Mechanism}: SIFT descriptors represent local visual gradients with low intrinsic dimensionality clustered around visual primitives. HNSW's upper-layer highway edges navigate between clusters in $\mathcal{O}(\log N)$ hops, entering the target cluster near the query. In contrast, GloVe word embeddings populate a dense, high-dimensional spherical shell with severe \textbf{hubness}---certain hub words (e.g., common syntactic words) appear among the nearest neighbours of thousands of queries. Hub nodes create high graph in-degrees that distort greedy routing, forcing HNSW to expand deep search buffers ($efSearch = 1200$) to circumvent hubs, eroding its speed advantage over inverted list scanning.
 
 \subsection{Q2: Build Time, Memory Costs, and the PQ Trade-off}
-\textbf{Build Time}: Exact search requires zero indexing time (0.2s array allocation). IVF-Flat builds rapidly (34--38s for $\sim 1\text{M}$ vectors) via mini-batch $k$-means. HNSW requires extensive neighbor selection and edge pruning, taking $130.6$s on SIFT and $208.3$s on GloVe ($3.5\times$--$6\times$ slower than IVF-Flat).
+\textbf{Build Time}: Exact search requires zero indexing time (0.2s array allocation). IVF-Flat builds rapidly (29--34s for $\sim 1\text{M}$ vectors) via $k$-means on a subsample of the data. HNSW requires extensive neighbor selection and edge pruning, taking $114.6$s on SIFT and $170.5$s on GloVe ($3.4\times$--$5.9\times$ slower than the IVF-Flat configurations in Table~\ref{tab:part2_resources}).
 
-\textbf{Memory Footprint}: IVF-Flat incurs minimal overhead over raw vectors (497 MB on SIFT = 521 B/vec vs. 512 B/vec raw). HNSW adds bidirectional graph adjacency lists ($2 \times M \times 4$ bytes per link), consuming 748 MB (784 B/vec, $+53\%$ overhead). 
+\textbf{Memory Footprint}: IVF-Flat incurs minimal overhead over raw vectors (497 MB on SIFT = 521 B/vec vs. 512 B/vec raw). HNSW adds graph adjacency lists ($2M$ neighbour ids of 4 bytes on the base layer, 256 B for $M=32$), consuming 748 MB (784 B/vec, $+53\%$ overhead). 
 
 \textbf{What PQ Saves and Gives Up}: 
 \begin{itemize}
-    \item \textbf{What it saves}: IVF-PQ compresses the index to 70.8 MB on SIFT (74.3 B/vec) and 66.4 MB on GloVe (58.8 B/vec), achieving \textbf{$7\times$ to $28\times$ memory reduction}.
-    \item \textbf{What it gives up}: PQ surrenders continuous distance resolution. Sub-space quantization distortion creates rank scrambling that imposes an impassable recall ceiling (0.885 on SIFT, 0.829 on GloVe). To reach 0.95 recall, PQ requires exact re-ranking, which restores recall but forces the system to store uncompressed vectors (512 MB), nullifying in-memory compression.
+    \item \textbf{What it saves}: IVF-PQ compresses the index to 69.8 MB on SIFT (73.2 B/vec, $m=64$) and 66.4 MB on GloVe (58.8 B/vec, $m=50$), about \textbf{$7\times$ smaller} than raw vectors (up to $28\times$ with $m=8$ in Part 3).
+    \item \textbf{What it gives up}: PQ surrenders continuous distance resolution. Sub-space quantization distortion creates rank scrambling that imposes an impassable recall ceiling (0.883 on SIFT, 0.829 on GloVe). To reach 0.95 recall, PQ requires exact re-ranking, which restores recall but forces the system to store uncompressed vectors (512 MB), nullifying in-memory compression.
 \end{itemize}
 
 \subsection{Q3: Implications of Parts 3 and 4 on Headline Numbers}
 Public benchmark leaderboards (e.g., ann-benchmarks) report peak QPS under ideal clustered geometries and static in-distribution queries. Our findings demonstrate two critical failure modes where headline numbers mislead:
 \begin{enumerate}
-    \item \textbf{The Incomplete Metric Trap (Part 3)}: Leaderboards often highlight plain IVF-PQ's 20,000+ QPS and tiny memory footprint. However, because plain PQ cannot exceed 0.88 recall, headline QPS figures are unusable for production retrieval systems requiring $R \ge 0.95$. Exact re-ranking achieves 0.966 recall at 3,664 QPS, but requires $7\times$ more memory than advertised.
+    \item \textbf{The Incomplete Metric Trap (Part 3)}: Leaderboards often highlight plain IVF-PQ's 20,000+ QPS and tiny memory footprint. However, because plain PQ cannot exceed 0.88 recall, headline QPS figures are unusable for production retrieval systems requiring $R \ge 0.95$. Exact re-ranking achieves 0.966 recall at 3,973 QPS, but needs $\approx 20\times$ more memory than the plain $m=16$ index (538 vs.\ 26 B/vec).
     \item \textbf{The Geometry Mismatch Trap (Part 4)}: When data geometry deviates from tight cluster manifolds (as shown in Part 4 at $\sigma=0.70$), both IVF-Flat and HNSW fail to reach 0.95 recall. In systems with diffuse embeddings or out-of-distribution queries, real-world throughput will collapse compared to leaderboard claims.
 \end{enumerate}
 
 \subsection{Q4: Deployment Recommendation (150K vs. 10M Vectors)}
 \textbf{Constraints}: 100 ms query SLA, 16 GB RAM budget.
 \begin{itemize}
-    \item \textbf{Scale 1: $N = 150,000$ Vectors ($D=128$, float32)}: Storing 150K vectors requires $150\text{K} \times 128 \times 4\text{ B} \approx \mathbf{76.8\text{ MB}}$ ($<0.5\%$ of 16 GB). Scaling from our 1M SIFT benchmark (23.72 ms), exact single-thread search takes $\frac{150\text{K}}{1\text{M}} \times 23.72\text{ ms} = \mathbf{3.56\text{ ms}}$ ($<0.5$ ms in batch), well inside the 100 ms SLA. \textbf{Recommendation}: \textbf{Use Exact Brute-Force Search (\texttt{IndexFlatL2})}. Exact search delivers 100\% recall with zero index build time, zero tuning, and minimal memory. Using ANN introduces unnecessary complexity and recall loss.
-    \item \textbf{Scale 2: $N = 10,000,000$ Vectors ($D=128$, float32)}: Exhaustive search takes $\frac{10\text{M}}{1\text{M}} \times 23.72\text{ ms} \approx 237.2\text{ ms}$, violating the 100 ms SLA; ANN is mandatory. HNSW ($M=32$) requires $\approx 7.84\text{ GB}$ and takes $\sim 25$ min to build, leaving limited RAM headroom for concurrency. \textbf{Recommendation}: \textbf{IVF-Flat ($nlist=16384, nprobe=64$)} or \textbf{Re-ranked IVF-PQ ($nlist=16384, m=16, k_{refine}=100$)}. IVF-Flat requires $5.21\text{ GB}$ RAM, builds in $\sim 6$ min, and delivers $\approx 200$ QPS (5 ms latency) at $R \ge 0.95$. If RAM must be shared, Re-ranked IVF-PQ keeps 250 MB PQ codes in RAM while memory-mapping raw vectors from NVMe SSD, achieving $<2$ ms latency.
+    \item \textbf{Scale 1: $N = 150,000$ Vectors ($D=128$, float32)}: Storing 150K vectors requires $150\text{K} \times 128 \times 4\text{ B} \approx \mathbf{76.8\text{ MB}}$ ($<0.5\%$ of 16 GB). Scaling from our 1M SIFT benchmark (22.22 ms), exact single-thread search takes $\frac{150\text{K}}{1\text{M}} \times 22.22\text{ ms} = \mathbf{3.33\text{ ms}}$ ($<0.5$ ms in batch), well inside the 100 ms SLA. \textbf{Recommendation}: \textbf{Use Exact Brute-Force Search (\texttt{IndexFlatL2})}. Exact search delivers 100\% recall with zero index build time, zero tuning, and minimal memory. Using ANN introduces unnecessary complexity and recall loss.
+    \item \textbf{Scale 2: $N = 10,000,000$ Vectors ($D=128$, float32)}: Exhaustive search takes $\frac{10\text{M}}{1\text{M}} \times 22.22\text{ ms} \approx 222.2\text{ ms}$, violating the 100 ms SLA; ANN is mandatory. HNSW ($M=32$) requires $\approx 7.84\text{ GB}$ and takes $\sim 25$ min to build, leaving limited RAM headroom for concurrency. \textbf{Recommendation}: \textbf{IVF-Flat ($nlist=16384, nprobe=64$)} or \textbf{Re-ranked IVF-PQ ($nlist=16384, m=16, k_{refine}=100$)}. IVF-Flat requires $5.21\text{ GB}$ RAM, builds in $\sim 6$ min, and delivers $\approx 200$ QPS (5 ms latency) at $R \ge 0.95$. If RAM must be shared, Re-ranked IVF-PQ keeps 250 MB PQ codes in RAM while memory-mapping raw vectors from NVMe SSD, achieving $<2$ ms latency.
 \end{itemize}
 
 \subsection{Q5: Two Ways Our Benchmark Could Be Misleading}
 \begin{enumerate}
-    \item \textbf{Single-Query Sequential Timing vs. Concurrent Workloads}: Our benchmark measures queries sequentially on a single thread with warm caches. In production, multi-threaded servers face memory bus contention and cache thrashing. \textbf{We tested this}: In Part 1, single-query vs. batch execution revealed a $7.4\times$ throughput divergence due to memory bandwidth saturation and cache amortization.
+    \item \textbf{Single-Query Sequential Timing vs. Concurrent Workloads}: Our benchmark measures queries sequentially on a single thread with warm caches. In production, multi-threaded servers face memory bus contention and cache thrashing. \textbf{Partially tested}: Part 1 shows that the access pattern alone changes exact-search throughput by $7.2$--$7.8\times$ (batch vs.\ single query), but we did not measure multi-threaded or concurrent serving.
     \item \textbf{Static Read-Only Indexes vs. Dynamic Streaming Updates}: Our benchmark evaluates static indexes from fixed distributions. Production systems experience continuous insertions, updates, and deletions, which degrade HNSW graph connectivity and cause IVF centroids to drift. \textbf{We did not test dynamic updates}, making this an important direction for future benchmarking.
 \end{enumerate}
 
 \section{Conclusion}
-This work systematically benchmarked exact search, HNSW, IVF-Flat, and IVF-PQ across visual descriptors, word embeddings, and controlled synthetic manifolds. We demonstrated that HNSW's throughput advantage is heavily governed by data geometry (shrinking from $3.67\times$ on SIFT to $1.24\times$ on GloVe). We resolved IVF-PQ's recall ceiling via candidate re-ranking (reaching 0.966 recall at 3,664 QPS), and proved that extreme cluster dispersion causes Voronoi boundary scattering in space-partitioning structures.
+This work systematically benchmarked exact search, HNSW, IVF-Flat, and IVF-PQ across visual descriptors, word embeddings, and controlled synthetic manifolds. We demonstrated that HNSW's throughput advantage is heavily governed by data geometry (shrinking from $3.97\times$ on SIFT to $1.15\times$ on GloVe). We resolved IVF-PQ's recall ceiling via candidate re-ranking (reaching 0.966 recall at 3,973 QPS), and proved that extreme cluster dispersion causes Voronoi boundary scattering in space-partitioning structures.
 
 \end{document}

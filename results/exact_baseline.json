@@ -4,29 +4,29 @@
     "num_train": 1000000,
     "dim": 128,
     "split": "test",
-    "build_time_s": 0.21743997399971704,
+    "build_time_s": 0.19890244400085066,
     "index_mb": 488.28125,
     "bytes_per_vec": 512.0,
     "recall_at_10": 1.0,
-    "batch_qps": 313.1143945718786,
-    "batch_latency_ms": 3.1937209446001362,
-    "single_qps": 42.165828513497225,
-    "single_latency_ms": 23.715886424000928,
-    "speedup_batch_vs_single": 7.425785419386486
+    "batch_qps": 352.1418886810848,
+    "batch_latency_ms": 2.839764402199944,
+    "single_qps": 45.01069444220216,
+    "single_latency_ms": 22.216942270999425,
+    "speedup_batch_vs_single": 7.823516012028367
   },
   {
     "dataset": "glove",
     "num_train": 1183514,
     "dim": 100,
     "split": "test",
-    "build_time_s": 0.20369982400006847,
+    "build_time_s": 0.17676503299662727,
     "index_mb": 451.4747619628906,
     "bytes_per_vec": 400.0,
     "recall_at_10": 1.0,
-    "batch_qps": 315.6366154896072,
-    "batch_latency_ms": 3.168200236999837,
-    "single_qps": 45.65442577462246,
-    "single_latency_ms": 21.90368147299887,
-    "speedup_batch_vs_single": 6.913603886899777
+    "batch_qps": 352.3871990601915,
+    "batch_latency_ms": 2.837787532200309,
+    "single_qps": 49.1028977476704,
+    "single_latency_ms": 20.365396867997333,
+    "speedup_batch_vs_single": 7.176505160062777
   }
 ]

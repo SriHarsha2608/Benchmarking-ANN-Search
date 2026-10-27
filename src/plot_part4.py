@@ -225,7 +225,7 @@ def generate_part4_figures_and_tables(
             f"{hnsw_row['build_time_s']:.2f}s | {hnsw_row['index_size_mb']:.1f} MB | {exact_row['qps']:.1f} QPS |"
         )
 
-    lines.append(r"\n## 2. Recall and Speed Under Low vs. High Search Budget" + "\n")
+    lines.append("\n" + r"## 2. Recall and Speed Under Low vs. High Search Budget" + "\n")
     lines.append(r"| Dispersion ($\sigma$) | IVF Rec (np=4) | IVF QPS | IVF Rec (np=64) | IVF QPS | HNSW Rec (ef=20) | HNSW QPS | HNSW Rec (ef=160) | HNSW QPS |")
     lines.append("|:--------------------:|:--------------:|:-------:|:---------------:|:-------:|:----------------:|:--------:|:-----------------:|:--------:|")
 
@@ -251,7 +251,7 @@ def generate_part4_figures_and_tables(
             f"{h20_r:.4f} | {h20_q:.1f} | {h160_r:.4f} | {h160_q:.1f} |"
         )
 
-    lines.append(r"\n## 3. High-Recall Target Performance (Recall = 0.95)" + "\n")
+    lines.append("\n" + r"## 3. High-Recall Target Performance (Recall = 0.95)" + "\n")
     lines.append(r"| Dispersion ($\sigma$) | IVF-Flat QPS @ 0.95 | Required nprobe | HNSW QPS @ 0.95 | Required efSearch | HNSW / IVF Throughput Ratio |")
     lines.append("|:--------------------:|:-------------------:|:---------------:|:----------------:|:-----------------:|:---------------------------:|")
 

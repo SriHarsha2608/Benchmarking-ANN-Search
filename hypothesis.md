@@ -10,7 +10,7 @@ This document records the formal hypotheses for Part 3 and Part 4 before conduct
 **Compression:** On SIFT-128 (1,000,000 base vectors, $D = 128$), vary the number of Product Quantization (PQ) sub-vectors $m \in \{8, 16, 32, 64\}$ (corresponding to sub-vector dimensions $d' \in \{16, 8, 4, 2\}$, with 8 bits per sub-vector code) under an inverted file index ($nlist = 4096$). We compare **Plain IVF-PQ** against **IVF-PQ with Exact Re-ranking** of the top $k_{refine} = 100$ candidate vectors using full-precision $L_2$ distance across varying search budgets ($nprobe \in \{1, 2, 4, 8, 16, 32, 64, 128\}$).
 
 ### Background & Motivation
-In Part 2, plain IVF-PQ ($m=16$) exhibited an asymptotic recall ceiling ($\approx 0.883$ on SIFT-128), failing to reach the target 0.95 recall regardless of the `nprobe` parameter. 
+In Part 2, plain IVF-PQ ($m=64$) exhibited an asymptotic recall ceiling ($\approx 0.883$ on SIFT-128; $m=16$ reached only $\approx 0.583$), failing to reach the target 0.95 recall regardless of the `nprobe` parameter. *(Correction made after the experiment: the original text attributed the 0.883 ceiling to $m=16$; it belongs to $m=64$. The hypotheses below are unchanged.)* 
 Product Quantization maps continuous sub-vectors to discrete centroid codes ($k^* = 256$), introducing quantization distortion $\epsilon = \|x - q(x)\|$. During asymmetric distance computation (ADC), this distortion causes ranking errors: true nearest neighbours that are successfully retrieved from inverted lists are misranked due to quantized distance noise and drop out of the top 10.
 
 ### Formal Hypotheses
@@ -38,15 +38,15 @@ Product Quantization maps continuous sub-vectors to discrete centroid codes ($k^
 
 | Hypothesis | Predicted Behavior | Empirical Observation | Verdict |
 |:-----------|:-------------------|:----------------------|:-------:|
-| **H1: Plain Ceiling** | Strict recall ceiling scaling with $m$; fails to reach 0.95 | Ceilings at 0.4138 ($m=8$), 0.5958 ($m=16$), 0.7449 ($m=32$), 0.8854 ($m=64$) | **Confirmed** |
-| **H2: Re-ranking Recovery** | Re-ranking top 100 restores recall $>0.95$ for $m \ge 16$; $m=8$ falls short | Re-ranked reaches 0.9661 ($m=16$), 0.9765 ($m=32, 64$); $m=8$ caps at 0.8899 | **Confirmed** |
-| **H3: QPS Overhead** | $<20\%$ latency penalty at equal $nprobe$; $>30\times$ faster than exact | QPS retention 85.1% to 99.5% for $nprobe \ge 32$; 3,664.4 QPS at recall 0.9661 ($87\times$ exact) | **Confirmed** |
-| **H4: Memory Trade-off** | Plain achieves $8\times$–$64\times$ savings; Re-ranking requires raw 512 B/vec | Plain: 18.3 to 73.2 B/vec (7x to 28x savings); Re-ranking: 530.3 to 586.3 B/vec | **Confirmed** |
+| **H1: Plain Ceiling** | Strict recall ceiling scaling with $m$; fails to reach 0.95 | Ceilings at 0.4174 ($m=8$), 0.5958 ($m=16$), 0.7449 ($m=32$), 0.8854 ($m=64$) | **Confirmed** |
+| **H2: Re-ranking Recovery** | Re-ranking top 100 restores recall $>0.95$ for $m \ge 16$; $m=8$ falls short | Re-ranked reaches 0.9661 ($m=16$), 0.9765 ($m=32, 64$); $m=8$ caps at 0.8895 | **Confirmed** |
+| **H3: QPS Overhead** | $<20\%$ latency penalty at equal $nprobe$; $>30\times$ faster than exact | QPS retention 77% to 99% for $nprobe \ge 32$ (only ~66-74% at $nprobe=1$, where the fixed ~20 µs re-ranking cost dominates); 3,973.4 QPS at recall 0.9661 ($88\times$ exact) | **Partially supported** |
+| **H4: Memory Trade-off** | Plain achieves $8\times$–$64\times$ savings; Re-ranking requires raw 512 B/vec | Plain: 18.3 to 74.3 B/vec (6.9x to 28x savings, lower than predicted because each inverted-list entry also stores an 8-byte id); Re-ranking: 530.3 to 586.3 B/vec | **Partially supported** |
 
 **Key Takeaways for Report:**
 1. Product Quantization's distance distortion is the sole cause of the recall ceiling observed in Part 2. The inverted list partition ($nlist=4096$) captures true neighbours with high fidelity within the top 100 candidates, but ADC distance noise disrupts relative ordering among the top 10.
-2. Exact re-ranking of the top 100 candidates is remarkably cheap ($100 \times 128$ floating point operations, taking $< 0.05$ ms per query), preserving over $92\%$ of single-query throughput while boosting recall by up to $+47.6\%$.
-3. When memory allows retaining raw vectors on SSD or RAM, Re-ranked IVF-PQ ($m=16$) achieves **3,664.4 QPS at 0.9661 recall**, outperforming IVF-Flat (2,030.0 QPS at 0.95 recall) by $1.81\times$ while building in 146s.
+2. Exact re-ranking of the top 100 candidates is remarkably cheap ($100 \times 128$ floating point operations, taking $< 0.05$ ms per query), preserving 77-99% of single-query throughput at $nprobe \ge 32$ while boosting recall by up to $+47.2$ points.
+3. When memory allows retaining raw vectors on SSD or RAM, Re-ranked IVF-PQ ($m=16$) achieves **3,973.4 QPS at 0.9661 recall**, outperforming IVF-Flat (2,175.7 QPS at 0.95 recall) by $1.83\times$ while building in 128s.
 
 ---
 
@@ -102,10 +102,10 @@ Fixed index configurations:
 
 | Hypothesis | Predicted Behavior | Empirical Observation | Verdict |
 |:-----------|:-------------------|:----------------------|:-------:|
-| **H1: IVF Boundary Scattering** | Severe recall drop at low/mod $nprobe$ as $\sigma \to 0.70$; requires large $nprobe$ | At $nprobe=16$, recall drops from 0.9432 ($\sigma=0.05$) to 0.7053 ($\sigma=0.70$); fails 0.95 target (0.9354 at $np=128$) | **Confirmed** |
-| **H2: HNSW Geometric Resilience** | HNSW degrades less than IVF; maintains $>0.90$ at $ef=40$ | HNSW outperforms IVF at low budget ($ef=20$ rec=0.5239 vs IVF $np=4$ rec=0.3460), but at $\sigma=0.70$ distance concentration caps $ef=40$ at 0.6688 | **Partially Confirmed** |
-| **H3: Tight Clique Trapping** | Extreme tightness ($\sigma=0.05$) causes slight routing entrapment vs mild overlap | At $ef=320$, recall is 0.9784 ($\sigma=0.05$) vs 0.9907 ($\sigma=0.15$), confirming isolated intra-cluster clique penalty | **Confirmed** |
-| **H4: Resource Trade-offs** | IVF build time invariant; HNSW build time increases with $\sigma$; diffuse data degrades QPS | IVF build time invariant (4.19s vs 4.14s); HNSW build time increases from 14.61s to 17.41s (+19.2%); both fail 0.95 at $\sigma=0.70$ | **Confirmed** |
+| **H1: IVF Boundary Scattering** | >0.95 at $nprobe \le 2$ for tight clusters; severe recall drop as $\sigma \to 0.70$ | Tight clusters reach only 0.16 at $nprobe=1$ ($nlist=1024 \gg K=50$ splits each cluster into ~20 cells); recall is unchanged for $\sigma \le 0.35$; at $nprobe=16$ it drops from 0.9432 to 0.7053 at $\sigma=0.70$ and fails 0.95 (0.9354 at $np=128$) | **Partially supported** |
+| **H2: HNSW Geometric Resilience** | HNSW degrades less than IVF; maintains $>0.90$ at $ef=40$ | $ef=40$ gives only 0.853 even in the control and 0.6688 at $\sigma=0.70$; at their largest budgets both degrade alike (HNSW 0.938 vs IVF 0.935) | **Not supported** |
+| **H3: Tight Clique Trapping** | Extreme tightness ($\sigma=0.05$) causes slight routing entrapment vs mild overlap | At $ef=320$, recall is 0.9784 ($\sigma=0.05$) vs 0.9907 ($\sigma=0.15$), consistent with a clique penalty, but a 1.2-point gap from one seed and one build | **Weakly supported** |
+| **H4: Resource Trade-offs** | IVF build time invariant; HNSW build time increases with $\sigma$; diffuse data degrades QPS | IVF build time invariant (4.24s vs 3.84s); HNSW build time increases from 13.77s to 15.74s (+14%); both fail 0.95 at $\sigma=0.70$ | **Confirmed** |
 
 **Key Takeaways for Report:**
 1. **The Voronoi Assumption Breakpoint**: IVF-Flat's core spatial assumption breaks down when intra-cluster variance causes points to spill across Voronoi boundaries. When clusters dissolve into diffuse ambient noise ($\sigma=0.70$), true nearest neighbours are scattered across dozens of inverted lists, causing recall at $nprobe=16$ to collapse from $94.3\%$ down to $70.5\%$.

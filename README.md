@@ -18,12 +18,11 @@ Benchmarking-ANN-Search/
 ├── ai log/                     # AI usage documentation (Moodle deliverable)
 │   ├── ai statement.md         # Source file authorship statement
 │   └── prompts_and_responses.md# Transcripts of AI tool interactions
-├── ai_log/                     # Alias for ai log/
 ├── data/                       # Dataset directory (excluded from git)
 │   ├── sift-128-euclidean.hdf5
 │   └── glove-100-angular.hdf5
 ├── results/
-│   ├── results.csv             # Raw benchmark measurements (253 runs)
+│   ├── results.csv             # Raw benchmark measurements (256 runs)
 │   ├── exact_baseline.json     # Exact search measurements
 │   ├── part2_summary.json      # Structured summary for Part 2
 │   ├── part2_tables.md         # Markdown summary tables for Part 2
@@ -91,7 +90,7 @@ This runs:
 - Regenerates all figures and summary markdown tables.
 
 ### Option B: Full Benchmark Run
-To reproduce all 253 benchmark runs across all four parts from scratch:
+To reproduce all 256 benchmark runs across all four parts from scratch:
 ```bash
 bash run_all.sh
 ```

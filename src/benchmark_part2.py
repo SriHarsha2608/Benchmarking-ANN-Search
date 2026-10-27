@@ -16,7 +16,7 @@ import time
 import argparse
 import tempfile
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 import numpy as np
 import pandas as pd
 import faiss
@@ -39,6 +39,13 @@ def measure_index_size(index: faiss.Index) -> int:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
     return size_bytes
+
+
+def split_recall(index: faiss.Index, split: Tuple[np.ndarray, np.ndarray, np.ndarray]) -> float:
+    """Recall@10 of an index on a (queries, true_neighbors, true_distances) split."""
+    queries, true_neighbors, true_distances = split
+    _, I = index.search(queries, 10)
+    return compute_recall_at_k(I, true_neighbors, true_distances, k=10)
 
 
 def time_single_queries(
@@ -76,6 +83,7 @@ def benchmark_hnsw(
     queries: np.ndarray,
     true_neighbors: np.ndarray,
     true_distances: np.ndarray,
+    tune_split: Tuple[np.ndarray, np.ndarray, np.ndarray],
     m_values: List[int],
     ef_search_values: List[int],
     ef_construction: int = 64,
@@ -109,6 +117,7 @@ def benchmark_hnsw(
             faiss.omp_set_num_threads(1)
             _, I = index.search(queries, 10)
             recall = compute_recall_at_k(I, true_neighbors, true_distances, k=10)
+            recall_tune = split_recall(index, tune_split)
 
             # Measure sequential single-query QPS
             qps = time_single_queries(index, queries, repeats=repeats, num_queries_to_time=num_queries_to_time)
@@ -126,6 +135,7 @@ def benchmark_hnsw(
                 "index_size_mb": size_mb,
                 "bytes_per_vec": bytes_per_vec,
                 "recall_at_10": recall,
+                "recall_at_10_tune": recall_tune,
                 "qps": qps,
                 "latency_ms": latency_ms,
                 "num_train": n_train,
@@ -142,6 +152,7 @@ def benchmark_ivf_flat(
     queries: np.ndarray,
     true_neighbors: np.ndarray,
     true_distances: np.ndarray,
+    tune_split: Tuple[np.ndarray, np.ndarray, np.ndarray],
     nlist_values: List[int],
     nprobe_values: List[int],
     repeats: int = 3,
@@ -176,6 +187,7 @@ def benchmark_ivf_flat(
             faiss.omp_set_num_threads(1)
             _, I = index.search(queries, 10)
             recall = compute_recall_at_k(I, true_neighbors, true_distances, k=10)
+            recall_tune = split_recall(index, tune_split)
 
             qps = time_single_queries(index, queries, repeats=repeats, num_queries_to_time=num_queries_to_time)
             latency_ms = (1000.0 / qps) if qps > 0 else 0.0
@@ -192,6 +204,7 @@ def benchmark_ivf_flat(
                 "index_size_mb": size_mb,
                 "bytes_per_vec": bytes_per_vec,
                 "recall_at_10": recall,
+                "recall_at_10_tune": recall_tune,
                 "qps": qps,
                 "latency_ms": latency_ms,
                 "num_train": n_train,
@@ -208,6 +221,7 @@ def benchmark_ivf_pq(
     queries: np.ndarray,
     true_neighbors: np.ndarray,
     true_distances: np.ndarray,
+    tune_split: Tuple[np.ndarray, np.ndarray, np.ndarray],
     nlist: int,
     m_values: List[int],
     nprobe_values: List[int],
@@ -248,6 +262,7 @@ def benchmark_ivf_pq(
             faiss.omp_set_num_threads(1)
             _, I = index.search(queries, 10)
             recall = compute_recall_at_k(I, true_neighbors, true_distances, k=10)
+            recall_tune = split_recall(index, tune_split)
 
             qps = time_single_queries(index, queries, repeats=repeats, num_queries_to_time=num_queries_to_time)
             latency_ms = (1000.0 / qps) if qps > 0 else 0.0
@@ -264,6 +279,7 @@ def benchmark_ivf_pq(
                 "index_size_mb": size_mb,
                 "bytes_per_vec": bytes_per_vec,
                 "recall_at_10": recall,
+                "recall_at_10_tune": recall_tune,
                 "qps": qps,
                 "latency_ms": latency_ms,
                 "num_train": n_train,
@@ -288,16 +304,21 @@ def run_benchmark_for_dataset(
     train = ds["train"]
     dim = ds["dim"]
 
+    # Settings are chosen on the tuning split (first 5,000 queries) and
+    # reported on the reporting split (last 5,000 queries).
     # In quick mode, compute ground truth on the 100k subset
     if quick:
         print(f"[Quick Mode] Computing ground truth on 100k {dataset_name.upper()} vectors...")
-        raw_queries, _, _ = get_query_split(ds, split=split)
-        queries = raw_queries[:1000]  # evaluate on 1000 queries in quick mode
         exact_idx = faiss.IndexFlatL2(dim)
         exact_idx.add(train)
+        queries = get_query_split(ds, split=split)[0][:1000]  # 1000 queries in quick mode
         true_distances, true_neighbors = exact_idx.search(queries, 100)
+        tune_queries = get_query_split(ds, split="tune")[0][:1000]
+        tune_distances, tune_neighbors = exact_idx.search(tune_queries, 100)
+        tune_split = (tune_queries, tune_neighbors, tune_distances)
     else:
         queries, true_neighbors, true_distances = get_query_split(ds, split=split)
+        tune_split = get_query_split(ds, split="tune")
 
     # Load exact baseline numbers if available
     exact_results = []
@@ -317,6 +338,7 @@ def run_benchmark_for_dataset(
                         "index_size_mb": item["index_mb"],
                         "bytes_per_vec": item["bytes_per_vec"],
                         "recall_at_10": 1.0,
+                        "recall_at_10_tune": 1.0,
                         "qps": item["single_qps"],
                         "latency_ms": item["single_latency_ms"],
                         "num_train": item["num_train"],
@@ -356,6 +378,7 @@ def run_benchmark_for_dataset(
         queries,
         true_neighbors,
         true_distances,
+        tune_split=tune_split,
         m_values=hnsw_m,
         ef_search_values=hnsw_ef_search,
         repeats=repeats,
@@ -370,6 +393,7 @@ def run_benchmark_for_dataset(
         queries,
         true_neighbors,
         true_distances,
+        tune_split=tune_split,
         nlist_values=ivf_nlist,
         nprobe_values=ivf_nprobe,
         repeats=repeats,
@@ -384,6 +408,7 @@ def run_benchmark_for_dataset(
         queries,
         true_neighbors,
         true_distances,
+        tune_split=tune_split,
         nlist=pq_nlist,
         m_values=pq_m,
         nprobe_values=pq_nprobe,
@@ -425,6 +450,8 @@ def main():
     parser.add_argument("--quick", action="store_true", help="Quick mode (100k vectors, fewer sweeps)")
     parser.add_argument("--out-csv", default="results/results.csv")
     args = parser.parse_args()
+    # Single thread for builds as well as searches, so build times are comparable
+    faiss.omp_set_num_threads(1)
 
     datasets = ["sift", "glove"] if args.dataset == "both" else [args.dataset]
     all_runs = []

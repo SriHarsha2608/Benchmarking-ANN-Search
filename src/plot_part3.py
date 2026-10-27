@@ -58,7 +58,11 @@ def generate_part3_figures_and_tables(
     sift_df["m"] = sift_df["build_params"].apply(extract_m)
     sift_df["nprobe"] = sift_df["search_params"].apply(extract_nprobe)
 
-    pq_df = sift_df[sift_df["index_type"].isin(["IVF-PQ", "IVF-PQ-Refine"]) & sift_df["m"].notnull()].copy()
+    # Only Part 3 rows (tagged "rerank="); Part 2 IVF-PQ rows use a different nlist
+    pq_df = sift_df[
+        sift_df["index_type"].isin(["IVF-PQ", "IVF-PQ-Refine"])
+        & sift_df["build_params"].str.contains("rerank=")
+    ].copy()
 
     # Colors for m values
     colors = {8: "#1f77b4", 16: "#ff7f0e", 32: "#2ca02c", 64: "#9467bd"}
@@ -250,6 +254,7 @@ def generate_part3_figures_and_tables(
         )
 
     lines.append("\n## 3. QPS and Recall at Standard Targets (Recall = 0.90 and 0.95)\n")
+    lines.append("nprobe chosen on the tuning split (first 5,000 queries); QPS and recall R reported on the reporting split.\n")
     lines.append("| Index Variant | QPS @ Recall 0.90 | nprobe @ 0.90 | QPS @ Recall 0.95 | nprobe @ 0.95 |")
     lines.append("|:--------------|:-----------------:|:-------------:|:-----------------:|:-------------:|")
 
@@ -259,20 +264,20 @@ def generate_part3_figures_and_tables(
         r_sub = pq_df[(pq_df["index_type"] == "IVF-PQ-Refine") & (pq_df["m"] == m_int)].sort_values(by="nprobe")
 
         # Check 0.90 and 0.95 for plain
-        p_90 = p_sub[p_sub["recall_at_10"] >= 0.90]
+        p_90 = p_sub[p_sub["recall_at_10_tune"] >= 0.90]
         p_90_str = f"{p_90.iloc[0]['qps']:.1f} (np={int(p_90.iloc[0]['nprobe'])})" if not p_90.empty else "N/A"
-        p_95 = p_sub[p_sub["recall_at_10"] >= 0.95]
+        p_95 = p_sub[p_sub["recall_at_10_tune"] >= 0.95]
         p_95_str = f"{p_95.iloc[0]['qps']:.1f} (np={int(p_95.iloc[0]['nprobe'])})" if not p_95.empty else "N/A (Ceiling)"
 
         lines.append(f"| Plain IVF-PQ (m={m_int}) | {p_90_str} | - | {p_95_str} | - |")
 
         # Check 0.90 and 0.95 for refine
-        r_90 = r_sub[r_sub["recall_at_10"] >= 0.90]
-        r_90_str = f"{r_90.iloc[0]['qps']:.1f}" if not r_90.empty else "N/A"
+        r_90 = r_sub[r_sub["recall_at_10_tune"] >= 0.90]
+        r_90_str = f"{r_90.iloc[0]['qps']:.1f} (R={r_90.iloc[0]['recall_at_10']:.3f})" if not r_90.empty else "N/A"
         r_90_np = f"nprobe={int(r_90.iloc[0]['nprobe'])}" if not r_90.empty else "-"
 
-        r_95 = r_sub[r_sub["recall_at_10"] >= 0.95]
-        r_95_str = f"{r_95.iloc[0]['qps']:.1f}" if not r_95.empty else "N/A"
+        r_95 = r_sub[r_sub["recall_at_10_tune"] >= 0.95]
+        r_95_str = f"{r_95.iloc[0]['qps']:.1f} (R={r_95.iloc[0]['recall_at_10']:.3f})" if not r_95.empty else "N/A"
         r_95_np = f"nprobe={int(r_95.iloc[0]['nprobe'])}" if not r_95.empty else "-"
 
         lines.append(f"| Re-ranked IVF-PQ (m={m_int}) | {r_90_str} | {r_90_np} | {r_95_str} | {r_95_np} |")

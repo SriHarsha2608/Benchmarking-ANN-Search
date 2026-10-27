@@ -3,7 +3,7 @@
 In accordance with CS4.406 course policy regarding the use of AI tools:
 
 ## Tool Usage
-AI assistance (Google Antigravity / Gemini) was used during this assignment for pair-programming, benchmark script orchestration, and LaTeX formatting.
+AI assistance (Google Antigravity / Gemini, and Claude Code for a final review pass) was used during this assignment for pair-programming, benchmark script orchestration, code review, and LaTeX formatting.
 
 ## Source File Classification
 

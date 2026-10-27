@@ -3,50 +3,50 @@
     "qps_at_recall": [
       {
         "Index": "HNSW",
-        "QPS @ Recall 0.90": "13528.9",
-        "QPS @ Recall 0.95": "8278.4"
+        "QPS @ Recall 0.90": "14035.5 (R=0.913)",
+        "QPS @ Recall 0.95": "8638.1 (R=0.957)"
       },
       {
         "Index": "IVF-Flat",
-        "QPS @ Recall 0.90": "3616.5",
-        "QPS @ Recall 0.95": "2030.0"
+        "QPS @ Recall 0.90": "2256.7 (R=0.937)",
+        "QPS @ Recall 0.95": "2175.7 (R=0.961)"
       },
       {
         "Index": "IVF-PQ",
-        "QPS @ Recall 0.90": "N/A (max 0.885)",
-        "QPS @ Recall 0.95": "N/A (max 0.885)"
+        "QPS @ Recall 0.90": "N/A (max 0.883)",
+        "QPS @ Recall 0.95": "N/A (max 0.883)"
       },
       {
         "Index": "Exact (IndexFlatL2)",
-        "QPS @ Recall 0.90": "42.2",
-        "QPS @ Recall 0.95": "42.2"
+        "QPS @ Recall 0.90": "45.0",
+        "QPS @ Recall 0.95": "45.0"
       }
     ],
     "resources_at_095": [
       {
         "Index": "HNSW",
-        "Build Time (s)": "130.63s",
+        "Build Time (s)": "114.60s",
         "Index Size (MB)": "747.8 MB",
         "Bytes / Vector": "784.1",
-        "Note": "Achieved recall: 0.9566 (M=32,efC=64)"
+        "Note": "Achieved recall: 0.9566 (M=32,efC=64, efSearch=60)"
       },
       {
         "Index": "IVF-Flat",
-        "Build Time (s)": "37.60s",
+        "Build Time (s)": "34.14s",
         "Index Size (MB)": "496.9 MB",
         "Bytes / Vector": "521.1",
-        "Note": "Achieved recall: 0.9609 (nlist=2048)"
+        "Note": "Achieved recall: 0.9609 (nlist=2048, nprobe=32)"
       },
       {
         "Index": "IVF-PQ",
-        "Build Time (s)": "143.15s",
-        "Index Size (MB)": "70.8 MB",
-        "Bytes / Vector": "74.3",
-        "Note": "Max recall reached: 0.885 (< 0.95)"
+        "Build Time (s)": "44.56s",
+        "Index Size (MB)": "69.8 MB",
+        "Bytes / Vector": "73.2",
+        "Note": "Max recall reached: 0.883 (< 0.95)"
       },
       {
         "Index": "Exact (IndexFlatL2)",
-        "Build Time (s)": "0.22s",
+        "Build Time (s)": "0.20s",
         "Index Size (MB)": "488.3 MB",
         "Bytes / Vector": "512.0",
         "Note": "Exact search (Recall 1.0)"
@@ -57,13 +57,13 @@
     "qps_at_recall": [
       {
         "Index": "HNSW",
-        "QPS @ Recall 0.90": "1419.9",
-        "QPS @ Recall 0.95": "446.0"
+        "QPS @ Recall 0.90": "1328.5 (R=0.911)",
+        "QPS @ Recall 0.95": "410.3 (R=0.960)"
       },
       {
         "Index": "IVF-Flat",
-        "QPS @ Recall 0.90": "940.2",
-        "QPS @ Recall 0.95": "359.2"
+        "QPS @ Recall 0.90": "720.3 (R=0.908)",
+        "QPS @ Recall 0.95": "357.7 (R=0.958)"
       },
       {
         "Index": "IVF-PQ",
@@ -72,35 +72,35 @@
       },
       {
         "Index": "Exact (IndexFlatL2)",
-        "QPS @ Recall 0.90": "45.7",
-        "QPS @ Recall 0.95": "45.7"
+        "QPS @ Recall 0.90": "49.1",
+        "QPS @ Recall 0.95": "49.1"
       }
     ],
     "resources_at_095": [
       {
         "Index": "HNSW",
-        "Build Time (s)": "208.27s",
+        "Build Time (s)": "170.51s",
         "Index Size (MB)": "758.6 MB",
         "Bytes / Vector": "672.2",
-        "Note": "Achieved recall: 0.9597 (M=32,efC=64)"
+        "Note": "Achieved recall: 0.9596 (M=32,efC=64, efSearch=1200)"
       },
       {
         "Index": "IVF-Flat",
-        "Build Time (s)": "9.90s",
-        "Index Size (MB)": "460.9 MB",
-        "Bytes / Vector": "408.4",
-        "Note": "Achieved recall: 0.9502 (nlist=1024)"
+        "Build Time (s)": "29.09s",
+        "Index Size (MB)": "461.3 MB",
+        "Bytes / Vector": "408.7",
+        "Note": "Achieved recall: 0.9584 (nlist=2048, nprobe=256)"
       },
       {
         "Index": "IVF-PQ",
-        "Build Time (s)": "42.31s",
+        "Build Time (s)": "38.27s",
         "Index Size (MB)": "66.4 MB",
         "Bytes / Vector": "58.8",
         "Note": "Max recall reached: 0.829 (< 0.95)"
       },
       {
         "Index": "Exact (IndexFlatL2)",
-        "Build Time (s)": "0.20s",
+        "Build Time (s)": "0.18s",
         "Index Size (MB)": "451.5 MB",
         "Bytes / Vector": "400.0",
         "Note": "Exact search (Recall 1.0)"

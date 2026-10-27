@@ -92,15 +92,19 @@ def run_compression_experiment(
     dim = train.shape[1]
     n_train = len(train)
 
+    # Settings are chosen on the tuning split (first 5,000 queries) and
+    # reported on the reporting split (last 5,000 queries).
     if quick:
         print(f"[Quick Mode] Computing ground truth on 100k SIFT vectors...")
-        raw_queries, _, _ = get_query_split(sift_data, split="test")
-        queries = raw_queries[:1000]
         exact_idx = faiss.IndexFlatL2(dim)
         exact_idx.add(train)
+        queries = get_query_split(sift_data, split="test")[0][:1000]
         true_distances, true_neighbors = exact_idx.search(queries, 100)
+        tune_queries = get_query_split(sift_data, split="tune")[0][:1000]
+        tune_distances, tune_neighbors = exact_idx.search(tune_queries, 100)
     else:
         queries, true_neighbors, true_distances = get_query_split(sift_data, split="test")
+        tune_queries, tune_neighbors, tune_distances = get_query_split(sift_data, split="tune")
 
     n_queries = len(queries)
     print(f"  Base vectors: {n_train:,} (dim={dim})")
@@ -184,12 +188,16 @@ def run_compression_experiment(
             # --- A. Plain IVF-PQ ---
             _, I_plain = index_ivfpq.search(queries, 10)
             recall_plain = compute_recall_at_k(I_plain, true_neighbors, true_distances, k=10)
+            _, I_plain_tune = index_ivfpq.search(tune_queries, 10)
+            recall_plain_tune = compute_recall_at_k(I_plain_tune, tune_neighbors, tune_distances, k=10)
             qps_plain = time_single_queries(index_ivfpq, queries, repeats=repeats, num_queries_to_time=num_queries_to_time)
             lat_plain = (1000.0 / qps_plain) if qps_plain > 0 else 0.0
 
             # --- B. Refined IVF-PQ (re-rank top 100) ---
             _, I_refine = refine_index.search(queries, 10)
             recall_refine = compute_recall_at_k(I_refine, true_neighbors, true_distances, k=10)
+            _, I_refine_tune = refine_index.search(tune_queries, 10)
+            recall_refine_tune = compute_recall_at_k(I_refine_tune, tune_neighbors, tune_distances, k=10)
             qps_refine = time_single_queries(refine_index, queries, repeats=repeats, num_queries_to_time=num_queries_to_time)
             lat_refine = (1000.0 / qps_refine) if qps_refine > 0 else 0.0
 
@@ -213,6 +221,7 @@ def run_compression_experiment(
                 "index_size_mb": plain_size_mb,
                 "bytes_per_vec": plain_bytes_per_vec,
                 "recall_at_10": recall_plain,
+                "recall_at_10_tune": recall_plain_tune,
                 "qps": qps_plain,
                 "latency_ms": lat_plain,
                 "num_train": n_train,
@@ -232,6 +241,7 @@ def run_compression_experiment(
                 "index_size_mb": refine_size_mb,
                 "bytes_per_vec": refine_bytes_per_vec,
                 "recall_at_10": recall_refine,
+                "recall_at_10_tune": recall_refine_tune,
                 "qps": qps_refine,
                 "latency_ms": lat_refine,
                 "num_train": n_train,
@@ -287,6 +297,8 @@ if __name__ == "__main__":
     parser.add_argument("--quick", action="store_true", help="Run quick benchmark on subset of params")
 
     args = parser.parse_args()
+    # Single thread for builds as well as searches, so build times are comparable
+    faiss.omp_set_num_threads(1)
     run_compression_experiment(
         data_dir=args.data_dir,
         results_csv=args.results_csv,
